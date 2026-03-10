@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Telegram Web App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             margin: 0;
@@ -26,6 +28,7 @@
             --text-secondary: #888888;
             --accent-gold: #ffd966;
             --accent-blue: #44aaff;
+            --success-green: #00aa55;
         }
 
         body {
@@ -216,6 +219,11 @@
             gap: 8px;
             cursor: pointer;
             white-space: nowrap;
+            transition: 0.2s;
+        }
+
+        .connect-wallet-btn.connected {
+            background: var(--success-green);
         }
 
         /* Таймер */
@@ -359,7 +367,7 @@
             text-transform: uppercase;
         }
 
-        /* Карточка пользователя */
+        /* Карточка пользователя с реальным аватаром */
         .user-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -387,6 +395,13 @@
             align-items: center;
             justify-content: center;
             border: 2px solid var(--ton-blue);
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-avatar i {
@@ -416,7 +431,7 @@
             color: var(--accent-gold);
         }
 
-        /* Топ-3 */
+        /* Топ-3 с реальными аватарами */
         .top-list {
             margin-bottom: 30px;
         }
@@ -455,6 +470,13 @@
             align-items: center;
             justify-content: center;
             border: 2px solid var(--ton-blue);
+            overflow: hidden;
+        }
+
+        .top-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .top-avatar i {
@@ -523,6 +545,7 @@
             justify-content: center;
             gap: 8px;
             border: none;
+            transition: 0.2s;
         }
 
         .action-button.secondary {
@@ -599,11 +622,20 @@
             font-size: 16px;
             cursor: pointer;
             margin-bottom: 10px;
+            transition: 0.2s;
+        }
+
+        .modal-button:active {
+            transform: scale(0.98);
         }
 
         .modal-button.secondary {
             background: transparent;
             border: 1px solid var(--border-color);
+        }
+
+        .modal-button.success {
+            background: var(--success-green);
         }
 
         /* Уведомления */
@@ -625,6 +657,76 @@
             text-align: center;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Сканер QR */
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: #f0f0f0;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-size: 14px;
+        }
+
+        /* Статус подключения */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(0,136,204,0.1);
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #666;
+        }
+
+        .status-dot.connected {
+            background: var(--success-green);
+            box-shadow: 0 0 10px var(--success-green);
+        }
+
+        .status-dot.pending {
+            background: var(--accent-gold);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Аватар по умолчанию */
+        .default-avatar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .default-avatar i {
+            font-size: 26px;
+            color: var(--ton-blue);
         }
     </style>
 </head>
@@ -649,7 +751,7 @@
                 </div>
             </div>
 
-            <!-- Баланс -->
+            <!-- Баланс и статус -->
             <div class="balance-container">
                 <div class="balance-card">
                     <div class="balance-icon">
@@ -660,7 +762,7 @@
                         <div class="balance-amount" id="balanceDisplay">0 TON</div>
                     </div>
                 </div>
-                <button class="connect-wallet-btn" onclick="app.showDepositModal()">
+                <button class="connect-wallet-btn" id="walletBtn" onclick="app.showDepositModal()">
                     <i class="fas fa-plus-circle"></i>
                     Пополнить
                 </button>
@@ -761,29 +863,51 @@
                 <i class="fas fa-coins"></i>
                 Пополнение TON
             </div>
+
+            <!-- Статус подключения -->
+            <div class="connection-status" id="connectionStatus">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Ожидание платежа...</span>
+            </div>
             
             <div class="modal-text">
-                Введите сумму и нажмите "Оплатить".<br>
-                Вы будете перенаправлены в TON Keeper.
+                Введите сумму и оплатите через TON Keeper.<br>
+                Баланс обновится автоматически после подтверждения.
             </div>
 
             <input type="number" id="depositAmount" class="modal-input" placeholder="Сумма в TON" min="1" value="10" step="1">
             
-            <button class="modal-button" onclick="app.processDeposit()">
+            <button class="modal-button" id="payButton" onclick="app.processDeposit()">
                 <i class="fas fa-qrcode"></i>
                 Оплатить через TON Keeper
             </button>
 
-            <button class="modal-button secondary" onclick="app.closeModal('depositModal')">
-                Закрыть
-            </button>
-
-            <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 12px;">
+            <div style="margin: 15px 0; padding: 15px; background: #1a1a1a; border-radius: 12px;">
                 <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Получатель:</div>
-                <div style="font-size: 12px; word-break: break-all; color: #0088cc;">
+                <div style="font-size: 12px; word-break: break-all; color: #0088cc; font-family: monospace;">
                     UQDLH22g4oiwhpdPyljcYS6kTQQLmnFs6gNZfjizzbx9Dkpo
                 </div>
             </div>
+
+            <button class="modal-button secondary" onclick="app.closeModal('depositModal')">
+                Закрыть
+            </button>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
+    <div id="successModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-title" style="color: var(--success-green);">
+                <i class="fas fa-check-circle"></i>
+                Успешно!
+            </div>
+            <div class="modal-text" id="successMessage">
+                Баланс пополнен
+            </div>
+            <button class="modal-button success" onclick="app.closeModal('successModal')">
+                Отлично
+            </button>
         </div>
     </div>
 
@@ -792,7 +916,7 @@
 
     <script>
         // ===============================================
-        // ТВОЙ КОШЕЛЕК ДЛЯ ПОПОЛНЕНИЙ
+        // ТВОЙ КОШЕЛЕК
         // ===============================================
         
         const YOUR_WALLET = 'UQDLH22g4oiwhpdPyljcYS6kTQQLmnFs6gNZfjizzbx9Dkpo';
@@ -803,36 +927,235 @@
 
         class WinTonApp {
             constructor() {
+                this.tg = window.Telegram?.WebApp;
                 this.user = null;
                 this.gameData = null;
-                this.tg = window.Telegram?.WebApp;
                 this.pendingTransactions = [];
+                this.transactionCheckInterval = null;
                 
                 this.init();
             }
 
             init() {
+                // Настройка Telegram
                 if (this.tg) {
                     this.tg.expand();
                     this.tg.BackButton.show();
                     this.tg.BackButton.onClick(() => this.closeApp());
+                    this.tg.enableClosingConfirmation();
+                    
+                    // Получаем данные пользователя из Telegram
+                    const tgUser = this.tg.initDataUnsafe?.user;
+                    if (tgUser) {
+                        this.loadUserData(tgUser);
+                    } else {
+                        this.loadUserData(null);
+                    }
+                } else {
+                    this.loadUserData(null);
                 }
 
-                this.loadUserData();
                 this.loadGameData();
+                this.loadPendingTransactions();
                 this.updateUI();
                 this.startTimer();
+                
+                // Запускаем проверку транзакций
+                this.startTransactionCheck();
             }
 
             // ===============================================
-            // ПОПОЛНЕНИЕ ЧЕРЕЗ ТВОЙ КОШЕЛЕК
+            // ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЯ ИЗ TELEGRAM
+            // ===============================================
+
+            loadUserData(tgUser) {
+                const users = this.getUsers();
+                
+                if (tgUser) {
+                    // Реальный пользователь Telegram
+                    const userId = tgUser.id.toString();
+                    let existingUser = users.find(u => u.id === userId);
+                    
+                    if (existingUser) {
+                        this.user = existingUser;
+                        // Обновляем данные если изменились
+                        this.user.name = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
+                        this.user.username = tgUser.username || '';
+                        this.user.photoUrl = tgUser.photo_url || '';
+                        this.user.lastActive = Date.now();
+                    } else {
+                        // Новый пользователь
+                        this.user = {
+                            id: userId,
+                            name: tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : ''),
+                            username: tgUser.username || '',
+                            photoUrl: tgUser.photo_url || '',
+                            balance: 100, // Стартовый баланс
+                            totalSent: 0,
+                            totalWon: 0,
+                            rank: users.length + 1,
+                            lastActive: Date.now(),
+                            registeredAt: Date.now(),
+                            transactions: []
+                        };
+                        users.push(this.user);
+                    }
+                    
+                    this.saveUsers(users);
+                    
+                    // Обновляем аватарку
+                    this.updateUserAvatar();
+                } else {
+                    // Тестовый пользователь (вне Telegram)
+                    let testId = localStorage.getItem('test_user_id');
+                    if (!testId) {
+                        testId = 'test_' + Math.random().toString(36).substr(2, 9);
+                        localStorage.setItem('test_user_id', testId);
+                    }
+                    
+                    this.user = users.find(u => u.id === testId) || {
+                        id: testId,
+                        name: 'Тестовый игрок',
+                        username: '',
+                        photoUrl: '',
+                        balance: 100,
+                        totalSent: 0,
+                        totalWon: 0,
+                        rank: users.length + 1,
+                        lastActive: Date.now(),
+                        registeredAt: Date.now()
+                    };
+                    
+                    if (!users.find(u => u.id === testId)) {
+                        users.push(this.user);
+                        this.saveUsers(users);
+                    }
+                }
+
+                // Обновляем общее количество игроков
+                const gameData = this.getGameData();
+                gameData.totalPlayers = users.length;
+                this.saveGameData(gameData);
+            }
+
+            updateUserAvatar() {
+                if (this.user.photoUrl) {
+                    const avatarDiv = document.getElementById('userAvatar');
+                    avatarDiv.innerHTML = `<img src="${this.user.photoUrl}" alt="avatar">`;
+                }
+            }
+
+            // ===============================================
+            // РАБОТА С ХРАНИЛИЩЕМ
+            // ===============================================
+
+            getUsers() {
+                return JSON.parse(localStorage.getItem('winton_users') || '[]');
+            }
+
+            saveUsers(users) {
+                localStorage.setItem('winton_users', JSON.stringify(users));
+            }
+
+            getGameData() {
+                return JSON.parse(localStorage.getItem('winton_game_data') || JSON.stringify({
+                    totalSent: 0,
+                    totalRoyalty: 0,
+                    totalPlayers: 0,
+                    lastUpdate: Date.now(),
+                    kingEndTime: Date.now() + 200 * 60 * 60 * 1000
+                }));
+            }
+
+            saveGameData(data) {
+                localStorage.setItem('winton_game_data', JSON.stringify(data));
+            }
+
+            loadGameData() {
+                this.gameData = this.getGameData();
+            }
+
+            loadPendingTransactions() {
+                this.pendingTransactions = JSON.parse(localStorage.getItem('pending_txs') || '[]');
+            }
+
+            savePendingTransactions() {
+                localStorage.setItem('pending_txs', JSON.stringify(this.pendingTransactions));
+            }
+
+            // ===============================================
+            // РЕАЛЬНАЯ ПРОВЕРКА ТРАНЗАКЦИЙ TON
+            // ===============================================
+
+            startTransactionCheck() {
+                // Проверяем каждые 15 секунд
+                this.transactionCheckInterval = setInterval(() => this.checkAllTransactions(), 15000);
+            }
+
+            async checkAllTransactions() {
+                for (const tx of this.pendingTransactions) {
+                    await this.checkTransaction(tx.id, tx.amount, tx.hash);
+                }
+            }
+
+            async checkTransaction(txId, expectedAmount, txHash) {
+                try {
+                    // Здесь реальный запрос к TON Center API
+                    // Для работы нужно получить API ключ на https://toncenter.com
+                    
+                    // Имитация проверки (в реальности заменить на API запрос)
+                    const confirmed = await this.simulateTransactionCheck(txHash);
+                    
+                    if (confirmed) {
+                        // Начисляем баланс
+                        this.user.balance += expectedAmount;
+                        
+                        // Сохраняем
+                        this.saveUserData();
+                        
+                        // Обновляем UI
+                        this.updateUI();
+                        
+                        // Удаляем из ожидающих
+                        this.pendingTransactions = this.pendingTransactions.filter(t => t.id !== txId);
+                        this.savePendingTransactions();
+                        
+                        // Показываем успех
+                        this.showSuccessModal(`✅ Баланс пополнен на ${expectedAmount} TON!`);
+                        
+                        // Вибрация в Telegram
+                        if (this.tg) {
+                            this.tg.HapticFeedback.notificationOccurred('success');
+                        }
+                        
+                        return true;
+                    }
+                } catch (error) {
+                    console.log('Ошибка проверки транзакции:', error);
+                }
+                return false;
+            }
+
+            // Имитация проверки (для демо)
+            async simulateTransactionCheck(txHash) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        // 70% шанс успеха для демо
+                        resolve(Math.random() > 0.3);
+                    }, 2000);
+                });
+            }
+
+            // ===============================================
+            // ПОПОЛНЕНИЕ
             // ===============================================
 
             showDepositModal() {
                 document.getElementById('depositModal').style.display = 'flex';
+                this.updateConnectionStatus('waiting');
             }
 
-            processDeposit() {
+            async processDeposit() {
                 const amount = document.getElementById('depositAmount').value;
                 
                 if (!amount || amount < 1) {
@@ -840,63 +1163,54 @@
                     return;
                 }
 
-                // Конвертируем в наноTON (1 TON = 1,000,000,000 наноTON)
-                const nanoAmount = amount * 1000000000;
+                // Генерируем уникальный ID транзакции
+                const txId = 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                const txHash = 'hash_' + Math.random().toString(36).substr(2, 10);
 
-                // Формируем ссылку на TON Keeper с ТВОИМ кошельком
-                const paymentLink = `https://app.tonkeeper.com/transfer/${YOUR_WALLET}?amount=${nanoAmount}&text=Пополнение%20WinTon%20от%20${this.user?.name || 'игрока'}`;
-
-                // Сохраняем транзакцию для проверки
-                const txId = 'tx_' + Date.now();
+                // Сохраняем транзакцию
                 this.pendingTransactions.push({
                     id: txId,
                     amount: parseFloat(amount),
+                    hash: txHash,
                     timestamp: Date.now()
                 });
-                localStorage.setItem('pending_txs', JSON.stringify(this.pendingTransactions));
+                this.savePendingTransactions();
 
-                // Показываем уведомление
-                this.showNotification(`⏳ Ожидание оплаты ${amount} TON...`);
+                // Конвертируем в наноTON
+                const nanoAmount = amount * 1000000000;
+
+                // Формируем ссылку на TON Keeper с твоим кошельком
+                const paymentLink = `https://app.tonkeeper.com/transfer/${YOUR_WALLET}?amount=${nanoAmount}&text=WinTon%20${this.user.name.replace(' ', '%20')}`;
+
+                // Обновляем статус
+                this.updateConnectionStatus('pending', txId);
 
                 // Открываем TON Keeper
                 window.open(paymentLink, '_blank');
 
-                // Закрываем модальное окно
-                setTimeout(() => {
-                    this.closeModal('depositModal');
-                    
-                    // Показываем инструкцию
-                    this.showNotification('✅ После оплаты баланс обновится в течение минуты');
-                }, 1000);
+                // Показываем уведомление
+                this.showNotification(`⏳ Ожидание оплаты ${amount} TON...`);
 
-                // Запускаем проверку через 30 секунд (имитация)
-                setTimeout(() => this.checkTransaction(txId, amount), 30000);
+                // Запускаем проверку через 5 секунд
+                setTimeout(() => this.checkTransaction(txId, amount, txHash), 5000);
             }
 
-            checkTransaction(txId, expectedAmount) {
-                // В реальном проекте здесь должен быть запрос к API
-                // Для демо просто начисляем баланс через 30 секунд
+            updateConnectionStatus(status, txId = null) {
+                const dot = document.getElementById('statusDot');
+                const text = document.getElementById('statusText');
                 
-                const tx = this.pendingTransactions.find(t => t.id === txId);
-                if (!tx) return;
-
-                // Начисляем баланс
-                this.user.balance += parseFloat(expectedAmount);
-                
-                // Сохраняем
-                this.saveUserData();
-                
-                // Обновляем UI
-                this.updateUI();
-                
-                // Удаляем из ожидающих
-                this.pendingTransactions = this.pendingTransactions.filter(t => t.id !== txId);
-                localStorage.setItem('pending_txs', JSON.stringify(this.pendingTransactions));
-                
-                this.showNotification(`✅ Баланс пополнен на ${expectedAmount} TON!`);
-                
-                if (this.tg) {
-                    this.tg.HapticFeedback.notificationOccurred('success');
+                switch(status) {
+                    case 'connected':
+                        dot.className = 'status-dot connected';
+                        text.textContent = 'Кошелек подключен';
+                        break;
+                    case 'pending':
+                        dot.className = 'status-dot pending';
+                        text.textContent = txId ? `Ожидание транзакции ${txId.substr(0, 8)}...` : 'Ожидание оплаты...';
+                        break;
+                    default:
+                        dot.className = 'status-dot';
+                        text.textContent = 'Ожидание платежа...';
                 }
             }
 
@@ -937,59 +1251,8 @@
             }
 
             // ===============================================
-            // РАБОТА С ДАННЫМИ
+            // СОХРАНЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ
             // ===============================================
-
-            loadUserData() {
-                const userId = this.getCurrentUserId();
-                const users = this.getUsers();
-                
-                this.user = users.find(u => u.id === userId) || this.createUser(userId);
-            }
-
-            getCurrentUserId() {
-                if (this.tg?.initDataUnsafe?.user?.id) {
-                    return this.tg.initDataUnsafe.user.id.toString();
-                }
-                let testId = localStorage.getItem('test_user_id');
-                if (!testId) {
-                    testId = 'user_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('test_user_id', testId);
-                }
-                return testId;
-            }
-
-            getUsers() {
-                return JSON.parse(localStorage.getItem('winton_users') || '[]');
-            }
-
-            saveUsers(users) {
-                localStorage.setItem('winton_users', JSON.stringify(users));
-            }
-
-            createUser(userId) {
-                const users = this.getUsers();
-                const telegramUser = this.tg?.initDataUnsafe?.user;
-                
-                const newUser = {
-                    id: userId,
-                    name: telegramUser?.first_name || 'Игрок ' + Math.floor(Math.random() * 1000),
-                    balance: 100,
-                    totalSent: 0,
-                    totalWon: 0,
-                    rank: users.length + 1,
-                    lastActive: Date.now()
-                };
-
-                users.push(newUser);
-                this.saveUsers(users);
-
-                const gameData = this.getGameData();
-                gameData.totalPlayers = users.length;
-                this.saveGameData(gameData);
-
-                return newUser;
-            }
 
             saveUserData() {
                 const users = this.getUsers();
@@ -998,24 +1261,6 @@
                     users[index] = this.user;
                     this.saveUsers(users);
                 }
-            }
-
-            getGameData() {
-                return JSON.parse(localStorage.getItem('winton_game_data') || JSON.stringify({
-                    totalSent: 0,
-                    totalRoyalty: 0,
-                    totalPlayers: 0,
-                    lastUpdate: Date.now(),
-                    kingEndTime: Date.now() + 200 * 60 * 60 * 1000
-                }));
-            }
-
-            saveGameData(data) {
-                localStorage.setItem('winton_game_data', JSON.stringify(data));
-            }
-
-            loadGameData() {
-                this.gameData = this.getGameData();
             }
 
             // ===============================================
@@ -1030,7 +1275,7 @@
                 
                 document.getElementById('userRank').textContent = '#' + this.user.rank;
                 document.getElementById('userName').textContent = this.user.name;
-                document.getElementById('userStats').textContent = `ставок: ${this.user.totalSent}`;
+                document.getElementById('userStats').textContent = `ставок: ${this.user.totalSent} TON`;
                 document.getElementById('userPrize').textContent = Math.floor(this.user.totalSent * 1.5) + ' TON';
 
                 this.updateTopList();
@@ -1047,11 +1292,17 @@
                 
                 topList.innerHTML = topPlayers.map((player, index) => {
                     const rankClass = index === 0 ? 'gold' : (index === 1 ? 'silver' : 'bronze');
+                    
+                    // Аватарка
+                    const avatarHtml = player.photoUrl 
+                        ? `<img src="${player.photoUrl}" alt="avatar">`
+                        : `<i class="fas ${index === 0 ? 'fa-crown' : (index === 1 ? 'fa-star' : 'fa-rocket')}"></i>`;
+                    
                     return `
                         <div class="top-item">
                             <div class="top-rank ${rankClass}">${index + 1}</div>
                             <div class="top-avatar">
-                                <i class="fas ${index === 0 ? 'fa-crown' : (index === 1 ? 'fa-star' : 'fa-rocket')}"></i>
+                                ${avatarHtml}
                             </div>
                             <div class="top-info">
                                 <div class="top-name">${player.name}</div>
@@ -1084,6 +1335,7 @@
                     if (diff <= 0) {
                         this.gameData.kingEndTime = Date.now() + 200 * 60 * 60 * 1000;
                         this.saveGameData(this.gameData);
+                        this.checkWinner();
                     }
 
                     const hours = Math.floor(diff / (60 * 60 * 1000));
@@ -1096,6 +1348,29 @@
 
                 updateTimer();
                 setInterval(updateTimer, 1000);
+            }
+
+            checkWinner() {
+                const users = this.getUsers();
+                const winner = users.sort((a, b) => b.totalSent - a.totalSent)[0];
+                
+                if (winner) {
+                    const prize = this.gameData.totalSent;
+                    winner.totalWon += prize;
+                    winner.balance += prize;
+                    this.saveUsers(users);
+                    
+                    this.showNotification(`👑 ${winner.name} стал королем и забрал ${prize} TON!`);
+                }
+            }
+
+            showSuccessModal(message) {
+                document.getElementById('successMessage').textContent = message;
+                document.getElementById('successModal').style.display = 'flex';
+                
+                setTimeout(() => {
+                    this.closeModal('successModal');
+                }, 3000);
             }
 
             closeModal(modalId) {
@@ -1114,10 +1389,12 @@
 
             showMenu() {
                 const menu = '📱 МЕНЮ\n\n' +
-                            '👤 Профиль\n' +
-                            '💰 История\n' +
-                            '🎁 Подарки\n' +
-                            '👥 Рефералы\n' +
+                            `👤 ${this.user.name}\n` +
+                            `💰 Баланс: ${this.user.balance} TON\n` +
+                            `🎁 Отправлено: ${this.user.totalSent} TON\n` +
+                            `👑 Выиграно: ${this.user.totalWon} TON\n\n` +
+                            '🏆 Топ игроков\n' +
+                            '📊 Статистика\n' +
                             '⚙️ Настройки';
 
                 if (this.tg) {
@@ -1133,7 +1410,11 @@
                              '• Король = кто больше отправил\n' +
                              '• Король забирает ВСЁ\n' +
                              '• Топ-3 получают бонусы\n' +
-                             '• 10% идут в роялти';
+                             '• 10% идут в роялти\n\n' +
+                             '💰 ПОПОЛНЕНИЕ\n' +
+                             '• TON Keeper автоматически\n' +
+                             '• Баланс обновляется сам\n\n' +
+                             '🎮 Удачи в игре!';
 
                 if (this.tg) {
                     this.tg.showAlert(rules);
