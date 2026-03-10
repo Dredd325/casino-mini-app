@@ -1,435 +1,519 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TON Casino</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WinTon — Царь горы</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
-        
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
             min-height: 100vh;
-            color: white;
         }
-        
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
+
+        .app-container {
+            max-width: 420px;
+            width: 100%;
+            background: #000;
+            color: #fff;
+            position: relative;
+            padding-bottom: 30px;
         }
-        
+
+        /* ШАПКА */
         .header {
+            background: linear-gradient(145deg, #1e5f9e 0%, #0a2e4f 100%);
+            padding: 16px 20px 30px 20px;
+            border-bottom-left-radius: 32px;
+            border-bottom-right-radius: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Паттерн (водяной знак) — кепка с пропеллером */
+        .header::before {
+            content: "🧢✨";
+            position: absolute;
+            top: 20px;
+            right: 10px;
+            font-size: 100px;
+            opacity: 0.1;
+            color: white;
+            transform: rotate(5deg);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .balance {
-            background: rgba(255,215,0,0.2);
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-        
-        .menu {
-            display: flex;
-            gap: 10px;
             margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
         }
-        
+
+        .close-btn {
+            color: white;
+            font-size: 16px;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .title-section {
+            text-align: center;
+        }
+
+        .main-title {
+            font-size: 26px;
+            font-weight: 800;
+            line-height: 1;
+            color: white;
+        }
+
+        .sub-title {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
         .menu-btn {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
+            width: 42px;
+            height: 42px;
+            border: 1.5px solid rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            background: transparent;
         }
-        
-        .menu-btn.active {
-            background: #ffd700;
-            color: #333;
+
+        .menu-dot {
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
         }
-        
-        .game-card {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
+
+        /* Плашка с подарком */
+        .gift-chip {
+            background: #0b1f33;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 40px;
+            padding: 8px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
         }
-        
-        .king-title {
-            font-size: 24px;
-            margin-bottom: 15px;
-            color: #ffd700;
+
+        .gift-icon {
+            font-size: 20px;
         }
-        
-        .pool {
-            font-size: 36px;
-            font-weight: bold;
-            text-align: center;
-            margin: 20px 0;
-            color: #ffd700;
-        }
-        
-        .bet-input {
-            width: 100%;
-            padding: 15px;
+
+        .gift-chip span {
+            font-weight: 600;
             font-size: 18px;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
-            background: rgba(255,255,255,0.1);
             color: white;
-            margin-bottom: 15px;
         }
-        
-        .bet-input::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
-        
-        .bet-btn {
-            width: 100%;
-            padding: 15px;
-            font-size: 18px;
-            border: none;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #ffd700, #ffa500);
-            color: #333;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        
-        .bet-btn:active {
-            transform: scale(0.98);
-        }
-        
-        .nft-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
-        
-        .nft-item {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 15px;
+
+        /* Таймер */
+        .timer-block {
             text-align: center;
+            position: relative;
+            z-index: 2;
         }
-        
-        .nft-emoji {
-            font-size: 48px;
+
+        .main-timer {
+            font-size: 62px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            line-height: 1;
+            color: white;
+            text-shadow: 0 0 10px rgba(0,160,255,0.5);
             margin-bottom: 10px;
         }
-        
-        .nft-name {
-            font-weight: bold;
+
+        /* Баннер */
+        .banner {
+            background: #06324b;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            padding: 20px 25px;
+            margin-top: -10px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .banner-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
             margin-bottom: 5px;
         }
-        
-        .nft-price {
-            color: #ffd700;
-            font-weight: bold;
+
+        .banner-link {
+            color: #6ab0fe;
+            font-size: 16px;
+            font-weight: 500;
         }
-        
-        .hidden {
-            display: none;
+
+        /* Черный блок */
+        .black-content {
+            background: #000;
+            padding: 25px 16px 10px 16px;
         }
-        
-        .timer {
-            font-size: 20px;
+
+        /* Карточки статистики */
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 15px 5px;
             text-align: center;
-            margin: 15px 0;
-            color: #ffd700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
         }
-        
-        .king-info {
-            background: rgba(0,0,0,0.3);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
+
+        .stat-icon {
+            font-size: 28px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #aaa;
+            text-transform: lowercase;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* Ваша позиция */
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            color: #555;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+        }
+
+        .user-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0f0f0f;
+            padding: 10px 16px;
+            border-radius: 60px;
+            margin-bottom: 30px;
+        }
+
+        .user-rank {
+            font-size: 22px;
+            font-weight: 600;
+            color: white;
+            min-width: 30px;
+        }
+
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #ccc, #999);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><circle cx="50" cy="50" r="50" fill="%23333"/><circle cx="50" cy="40" r="18" fill="%23555"/><circle cx="50" cy="90" r="25" fill="%23555"/></svg>');
+            background-size: cover;
+            border: 2px solid #333;
+        }
+
+        .user-name {
+            flex: 1;
+            font-weight: 500;
+            font-size: 16px;
+            color: white;
+        }
+
+        .user-prize {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ddd;
+        }
+
+        /* Топ 3 */
+        .top3-header {
+            color: #555;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+        }
+
+        .top-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .rank-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #f5a623;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            color: white;
+        }
+
+        .rank-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #4a90e2, #9013fe);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23444"/><circle cx="30" cy="30" r="8" fill="%23aaa"/><circle cx="70" cy="30" r="8" fill="%23aaa"/><path d="M30 60 Q50 80 70 60" stroke="%23aaa" stroke-width="6" fill="none"/></svg>');
+            background-size: cover;
+        }
+
+        .top-name {
+            flex: 1;
+            font-weight: 500;
+            color: white;
+        }
+
+        .top-bet {
+            color: #bbb;
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .ton-symbol {
+            font-weight: 600;
+        }
+
+        /* Кнопка */
+        .footer-button {
+            background: #0066cc;
+            border-radius: 40px;
+            padding: 20px 24px;
+            margin: 30px 16px 10px 16px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0,100,255,0.3);
+            transition: 0.2s;
+        }
+
+        .footer-button:active {
+            transform: scale(0.98);
+            background: #0055bb;
+        }
+
+        .footer-note {
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+            margin: 8px 0 20px;
+        }
+
+        .ton-highlight {
+            color: #ffd966;
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Шапка -->
+    <div class="app-container">
+        <!-- ШАПКА -->
         <div class="header">
-            <h1>🎰 TON Casino</h1>
-            <div class="balance" id="balance">1000 TON</div>
-        </div>
-        
-        <!-- Меню -->
-        <div class="menu">
-            <button class="menu-btn active" onclick="showTab('king')">👑 Царь горы</button>
-            <button class="menu-btn" onclick="showTab('nft')">🎁 NFT</button>
-        </div>
-        
-        <!-- Царь горы -->
-        <div id="kingTab" class="">
-            <div class="game-card">
-                <div class="king-title">👑 ЦАРЬ ГОРЫ</div>
-                
-                <div class="pool" id="totalPool">1250 TON</div>
-                
-                <div class="king-info" id="kingInfo">
-                    👑 Текущий король: <span id="currentKing">Игрок 123</span><br>
-                    💰 Ставка короля: <span id="kingBet">500 TON</span>
+            <div class="header-top">
+                <span class="close-btn">Закрыть</span>
+                <div class="title-section">
+                    <div class="main-title">WinTon</div>
+                    <div class="sub-title">мини-приложение</div>
                 </div>
-                
-                <div class="timer" id="timer">
-                    ⏰ До конца: 02:30
-                </div>
-                
-                <input type="number" id="betAmount" class="bet-input" placeholder="Ваша ставка в TON" min="1" value="10">
-                
-                <button class="bet-btn" onclick="placeBet()">
-                    💰 Сделать ставку
-                </button>
-            </div>
-        </div>
-        
-        <!-- NFT магазин -->
-        <div id="nftTab" class="hidden">
-            <div class="game-card">
-                <h2 style="margin-bottom: 20px;">🎁 NFT Подарки</h2>
-                
-                <div class="nft-grid" id="nftGrid">
-                    <!-- NFT добавятся через JavaScript -->
+                <div class="menu-btn">
+                    <div class="menu-dot"></div>
+                    <div class="menu-dot"></div>
+                    <div class="menu-dot"></div>
                 </div>
             </div>
-            
-            <div class="game-card">
-                <h3 style="margin-bottom: 15px;">🎨 Мои NFT</h3>
-                <div class="nft-grid" id="myNFTs"></div>
+
+            <!-- Овальная плашка подарок + таймер -->
+            <div class="gift-chip">
+                <span class="gift-icon">🎁</span>
+                <span>10 TON</span>
             </div>
+
+            <div class="timer-block">
+                <div class="main-timer" id="timerDisplay">200:15:24</div>
+            </div>
+        </div>
+
+        <!-- ИНФОРМАЦИОННАЯ ЛЕНТА -->
+        <div class="banner">
+            <div class="banner-title">Царь горы заберет больше всех</div>
+            <div class="banner-link">Узнать больше →</div>
+        </div>
+
+        <!-- ЧЕРНЫЙ БЛОК -->
+        <div class="black-content">
+            <!-- Три карточки статистики -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">💎➡️</div>
+                    <div class="stat-label">отправлено</div>
+                    <div class="stat-value">1.2K</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👑</div>
+                    <div class="stat-label">роялти</div>
+                    <div class="stat-value">0.8K</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⭕⭕⭕</div>
+                    <div class="stat-label">реф. награды</div>
+                    <div class="stat-value">0.3K</div>
+                </div>
+            </div>
+
+            <!-- ВАША ПОЗИЦИЯ -->
+            <div class="position-header">
+                <span>ВАША ПОЗИЦИЯ</span>
+                <span>ВОЗМОЖНЫЙ ПРИЗ</span>
+            </div>
+            <div class="user-row">
+                <span class="user-rank">0</span>
+                <div class="user-avatar"></div>
+                <span class="user-name">mogged | bigx crypto</span>
+                <span class="user-prize">0</span>
+            </div>
+
+            <!-- ТОП 3 -->
+            <div class="top3-header">ТОП 3 ИЗ 100 ПОСЛЕДНИХ ОТПРАВИТЕЛЕЙ</div>
+
+            <!-- 1 место -->
+            <div class="top-row">
+                <div class="rank-badge">1</div>
+                <div class="rank-avatar"></div>
+                <span class="top-name">cryptoking</span>
+                <span class="top-bet"><span class="ton-symbol">TON</span> 2.5K</span>
+            </div>
+
+            <!-- 2 место -->
+            <div class="top-row">
+                <div style="width:38px; height:38px; border-radius:50%; background:#a0a0a0; display:flex; align-items:center; justify-content:center; font-weight:800;">2</div>
+                <div class="rank-avatar" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2240%22 r=%2220%22 fill=%22%23666%22/><circle cx=%2250%22 cy=%2290%22 r=%2230%22 fill=%22%23666%22/></svg>');"></div>
+                <span class="top-name">ton_staker</span>
+                <span class="top-bet"><span class="ton-symbol">TON</span> 1.8K</span>
+            </div>
+
+            <!-- 3 место -->
+            <div class="top-row">
+                <div style="width:38px; height:38px; border-radius:50%; background:#cd7f32; display:flex; align-items:center; justify-content:center; font-weight:800;">3</div>
+                <div class="rank-avatar" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23333%22/><circle cx=%2230%22 cy=%2230%22 r=%2210%22 fill=%22%23666%22/><circle cx=%2270%22 cy=%2230%22 r=%2210%22 fill=%22%23666%22/><path d=%22M30 60 Q50 80 70 60%22 stroke=%22%23666%22 stroke-width=%228%22 fill=%22none%22/></svg>');"></div>
+                <span class="top-name">whale_alert</span>
+                <span class="top-bet"><span class="ton-symbol">TON</span> 1.2K</span>
+            </div>
+        </div>
+
+        <!-- FOOTER КНОПКА -->
+        <div class="footer-button" onclick="sendGift()">
+            Отправить подарок
+        </div>
+        <div class="footer-note">
+            можно отправить свои подарки через Telegram
         </div>
     </div>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Telegram Mini App
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем на весь экран
-        
-        // Данные пользователя
-        let userBalance = 1000;
-        let myNFTs = [];
-        
-        // База данных (в памяти телефона)
-        let gameData = {
-            totalPool: 1250,
-            currentKing: {
-                id: 123,
-                name: 'Игрок 123',
-                bet: 500
-            },
-            endTime: Date.now() + 5 * 60 * 1000, // +5 минут
-            nfts: [
-                { id: 1, name: 'Золотой билет', emoji: '🎫', price: 100 },
-                { id: 2, name: 'Бриллиант', emoji: '💎', price: 250 },
-                { id: 3, name: 'Кубок', emoji: '🏆', price: 500 },
-                { id: 4, name: 'Корона', emoji: '👑', price: 1000 },
-                { id: 5, name: 'Редкий скин', emoji: '🎨', price: 150 },
-                { id: 6, name: 'Токен удачи', emoji: '🍀', price: 75 }
-            ]
-        };
-        
-        // Сохраняем в localStorage
-        if (!localStorage.getItem('gameData')) {
-            localStorage.setItem('gameData', JSON.stringify(gameData));
-        } else {
-            gameData = JSON.parse(localStorage.getItem('gameData'));
-        }
-        
-        if (!localStorage.getItem('userBalance')) {
-            localStorage.setItem('userBalance', '1000');
-        } else {
-            userBalance = parseInt(localStorage.getItem('userBalance'));
-        }
-        
-        if (!localStorage.getItem('myNFTs')) {
-            localStorage.setItem('myNFTs', JSON.stringify([]));
-        } else {
-            myNFTs = JSON.parse(localStorage.getItem('myNFTs'));
-        }
-        
-        // Обновляем интерфейс
-        function updateUI() {
-            document.getElementById('balance').innerText = userBalance + ' TON';
-            document.getElementById('totalPool').innerText = gameData.totalPool + ' TON';
-            document.getElementById('currentKing').innerText = gameData.currentKing.name;
-            document.getElementById('kingBet').innerText = gameData.currentKing.bet + ' TON';
-            
-            // Обновляем таймер
-            const timeLeft = Math.max(0, gameData.endTime - Date.now());
-            const minutes = Math.floor(timeLeft / 60000);
-            const seconds = Math.floor((timeLeft % 60000) / 1000);
-            document.getElementById('timer').innerHTML = `⏰ До конца: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            // Отрисовываем NFT
-            renderNFTs();
-        }
-        
-        // Переключение вкладок
-        function showTab(tab) {
-            document.getElementById('kingTab').classList.add('hidden');
-            document.getElementById('nftTab').classList.add('hidden');
-            document.getElementById(tab + 'Tab').classList.remove('hidden');
-            
-            // Подсветка кнопок
-            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-        }
-        
-        // Сделать ставку
-        function placeBet() {
-            const amount = parseInt(document.getElementById('betAmount').value);
-            
-            if (amount < 1) {
-                tg.showAlert('❌ Минимальная ставка 1 TON');
+        // Стартовый баланс 100 TON (имитация)
+        let userBalance = 100;
+        console.log('🎰 Стартовый баланс (подарок):', userBalance, 'TON');
+
+        // Таймер на 200 часов (каждые 200 часов новый король)
+        // Для демонстрации ставим 200 часов от текущего момента
+        let endTime = Date.now() + 200 * 60 * 60 * 1000; // 200 часов
+
+        function updateTimer() {
+            const now = Date.now();
+            const diff = endTime - now;
+
+            if (diff <= 0) {
+                // Новый цикл — ещё 200 часов
+                endTime = Date.now() + 200 * 60 * 60 * 1000;
+                document.getElementById('timerDisplay').innerText = '200:00:00';
                 return;
             }
-            
-            if (amount > userBalance) {
-                tg.showAlert('❌ Недостаточно средств!');
-                return;
-            }
-            
-            // Списываем баланс
-            userBalance -= amount;
-            gameData.totalPool += amount;
-            
-            // Проверяем, становится ли игрок королем
-            if (amount > gameData.currentKing.bet) {
-                gameData.currentKing = {
-                    id: tg.initDataUnsafe?.user?.id || 123,
-                    name: tg.initDataUnsafe?.user?.first_name || 'Вы',
-                    bet: amount
-                };
+
+            const hours = Math.floor(diff / (60 * 60 * 1000));
+            const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+            const seconds = Math.floor((diff % (60 * 1000)) / 1000);
+
+            const formatted = `${hours.toString().padStart(3, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('timerDisplay').innerText = formatted;
+        }
+
+        setInterval(updateTimer, 1000);
+
+        // Функция "Отправить подарок" — имитация отправки через Telegram
+        function sendGift() {
+            if (window.Telegram?.WebApp) {
+                // Если запущено в Telegram Mini App
+                const tg = window.Telegram.WebApp;
+                tg.showAlert('🎁 Функция отправки подарка через Telegram. Спишется 10 TON (демо)');
                 
-                tg.showAlert('👑 ВЫ СТАЛИ КОРОЛЕМ!');
-            }
-            
-            // Сохраняем
-            localStorage.setItem('userBalance', userBalance.toString());
-            localStorage.setItem('gameData', JSON.stringify(gameData));
-            
-            updateUI();
-            tg.HapticFeedback.impactOccurred('medium'); // Вибрация
-        }
-        
-        // Отрисовка NFT
-        function renderNFTs() {
-            const nftGrid = document.getElementById('nftGrid');
-            nftGrid.innerHTML = '';
-            
-            gameData.nfts.forEach(nft => {
-                const div = document.createElement('div');
-                div.className = 'nft-item';
-                div.innerHTML = `
-                    <div class="nft-emoji">${nft.emoji}</div>
-                    <div class="nft-name">${nft.name}</div>
-                    <div class="nft-price">${nft.price} TON</div>
-                    <button onclick="buyNFT(${nft.id})" style="
-                        background: #ffd700;
-                        border: none;
-                        color: #333;
-                        padding: 5px 15px;
-                        border-radius: 5px;
-                        margin-top: 10px;
-                        cursor: pointer;
-                    ">Купить</button>
-                `;
-                nftGrid.appendChild(div);
-            });
-            
-            // Мои NFT
-            const myNFTsDiv = document.getElementById('myNFTs');
-            myNFTsDiv.innerHTML = '';
-            
-            if (myNFTs.length === 0) {
-                myNFTsDiv.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.5);">У вас пока нет NFT</p>';
+                // Имитация отправки подарка (уменьшаем баланс)
+                userBalance -= 10;
+                if (userBalance < 0) userBalance = 0;
+                console.log('Новый баланс после подарка:', userBalance);
+                
+                // Можно добавить вибрацию
+                tg.HapticFeedback?.impactOccurred('medium');
             } else {
-                myNFTs.forEach(nft => {
-                    const div = document.createElement('div');
-                    div.className = 'nft-item';
-                    div.innerHTML = `
-                        <div class="nft-emoji">${nft.emoji}</div>
-                        <div class="nft-name">${nft.name}</div>
-                    `;
-                    myNFTsDiv.appendChild(div);
-                });
+                // Вне Telegram
+                alert('🎁 Отправка подарка (демо). Баланс: ' + userBalance + ' TON (уменьшено на 10)');
+                userBalance = Math.max(0, userBalance - 10);
+                console.log('Баланс:', userBalance);
             }
         }
-        
-        // Купить NFT
-        function buyNFT(nftId) {
-            const nft = gameData.nfts.find(n => n.id === nftId);
-            
-            if (userBalance < nft.price) {
-                tg.showAlert('❌ Недостаточно средств!');
-                return;
-            }
-            
-            userBalance -= nft.price;
-            myNFTs.push(nft);
-            
-            localStorage.setItem('userBalance', userBalance.toString());
-            localStorage.setItem('myNFTs', JSON.stringify(myNFTs));
-            
-            updateUI();
-            tg.showAlert(`🎁 Вы купили ${nft.name}!`);
-            tg.HapticFeedback.notificationOccurred('success');
+
+        // Инициализация Telegram Mini App, если доступен
+        if (window.Telegram?.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.expand(); // развернуть на весь экран
+            tg.BackButton.show(); // показать кнопку назад (закрыть)
+            tg.BackButton.onClick(() => tg.close());
         }
-        
-        // Таймер окончания игры
-        setInterval(() => {
-            if (Date.now() >= gameData.endTime) {
-                // Завершаем игру
-                const winner = gameData.currentKing;
-                tg.showAlert(`👑 ИГРА ОКОНЧЕНА!\nПобедитель: ${winner.name}\nВыигрыш: ${gameData.totalPool} TON`);
-                
-                // Начинаем новую игру
-                gameData = {
-                    totalPool: 0,
-                    currentKing: {
-                        id: 0,
-                        name: 'Нет короля',
-                        bet: 0
-                    },
-                    endTime: Date.now() + 5 * 60 * 1000,
-                    nfts: gameData.nfts
-                };
-                
-                localStorage.setItem('gameData', JSON.stringify(gameData));
-            }
-            updateUI();
-        }, 1000);
-        
-        // Инициализация
-        updateUI();
-        
-        // Кнопка "Назад" в Telegram
-        tg.BackButton.show();
-        tg.BackButton.onClick(() => {
-            tg.close();
-        });
     </script>
 </body>
 </html>
