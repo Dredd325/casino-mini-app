@@ -520,6 +520,12 @@
             text-align: center;
             box-shadow: 0 5px 20px rgba(0,0,0,0.5);
         }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -547,7 +553,7 @@
                     </div>
                     <div class="balance-info">
                         <div class="balance-label">Баланс</div>
-                        <div class="balance-amount" id="balanceDisplay">100.00 TON</div>
+                        <div class="balance-amount" id="balanceDisplay">0.00 TON</div>
                     </div>
                 </div>
                 <button class="deposit-btn" onclick="showDeposit()">
@@ -610,7 +616,9 @@
                     <span><i class="fas fa-trophy"></i> ТОП-50 ПО СТАВКАМ</span>
                     <span>СУММА</span>
                 </div>
-                <div id="topList" class="top-list"></div>
+                <div id="topList" class="top-list">
+                    <div class="loading">Загрузка...</div>
+                </div>
             </div>
         </div>
 
@@ -674,96 +682,56 @@
             tg.BackButton.onClick(() => tg.close());
         }
 
-        // ===============================================
-        // ХРАНИЛИЩЕ ДАННЫХ
-        // ===============================================
-
-        let players = [];
-        let bets = [];
+        // =============================================
+        // НАСТРОЙКИ
+        // =============================================
+        
+        const API_URL = 'https://casino-mini-app.vercel.app'; // ТВОЙ СЕРВЕР НА VERCEL
         let currentUser = null;
 
-        // Загрузить данные
-        function loadData() {
+        // =============================================
+        // ЗАГРУЗКА ПОЛЬЗОВАТЕЛЯ
+        // =============================================
+        
+        async function loadUser() {
+            if (!tg?.initDataUnsafe?.user) return;
+            
+            const tu = tg.initDataUnsafe.user;
+            
             try {
-                const savedPlayers = localStorage.getItem('win_players');
-                if (savedPlayers) {
-                    players = JSON.parse(savedPlayers);
-                } else {
-                    players = [];
-                }
-                
-                const savedBets = localStorage.getItem('win_bets');
-                if (savedBets) {
-                    bets = JSON.parse(savedBets);
-                } else {
-                    bets = [];
-                }
-                
-                console.log('Загружено:', players.length, 'игроков,', bets.length, 'ставок');
-            } catch (e) {
-                console.error('Ошибка загрузки:', e);
-                players = [];
-                bets = [];
-            }
-        }
-
-        // Сохранить данные
-        function saveData() {
-            localStorage.setItem('win_players', JSON.stringify(players));
-            localStorage.setItem('win_bets', JSON.stringify(bets));
-        }
-
-        // Получить текущего пользователя
-        function getCurrentUser() {
-            if (currentUser) return currentUser;
-            
-            // Из Telegram
-            if (tg?.initDataUnsafe?.user) {
-                const tu = tg.initDataUnsafe.user;
-                const userId = tu.id.toString();
-                
-                let user = players.find(p => p.id === userId);
-                
-                if (!user) {
-                    user = {
-                        id: userId,
+                const response = await fetch(API_URL + '/api/user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        telegramId: tu.id.toString(),
                         name: tu.first_name + (tu.last_name ? ' ' + tu.last_name : ''),
-                        avatar: tu.photo_url || null,
-                        balance: 100,
-                        totalSent: 0
-                    };
-                    players.push(user);
-                    saveData();
-                }
+                        avatar: tu.photo_url || null
+                    })
+                });
                 
-                currentUser = user;
-                return user;
+                if (response.ok) {
+                    currentUser = await response.json();
+                    updateUI();
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки пользователя:', error);
+                showNotification('❌ Ошибка подключения к серверу');
             }
-            
-            return null;
         }
 
-        // Обновить пользователя
-        function updateUser(updates) {
-            if (!currentUser) return;
-            
-            Object.assign(currentUser, updates);
-            
-            const index = players.findIndex(p => p.id === currentUser.id);
-            if (index !== -1) {
-                players[index] = currentUser;
-                saveData();
-            }
-            
-            updateUI();
+        // =============================================
+        // СТАВКИ
+        // =============================================
+
+        function showBetModal() {
+            document.getElementById('betModal').style.display = 'flex';
         }
 
-        // Сделать ставку
-        function makeBet() {
+        async function makeBet() {
             const amount = parseFloat(document.getElementById('betAmount').value);
             
             if (!currentUser) {
-                showNotification('❌ Ошибка: не удалось загрузить профиль');
+                showNotification('❌ Ошибка загрузки профиля');
                 return;
             }
             
@@ -777,73 +745,50 @@
                 return;
             }
             
-            // Списываем
-            currentUser.balance -= amount;
-            currentUser.totalSent = (currentUser.totalSent || 0) + amount;
-            
-            // Сохраняем ставку
-            const bet = {
-                id: Date.now() + Math.random(),
-                userId: currentUser.id,
-                userName: currentUser.name,
-                userAvatar: currentUser.avatar,
-                amount: amount,
-                time: Date.now()
-            };
-            
-            bets.push(bet);
-            
-            // Обновляем пользователя
-            updateUser({
-                balance: currentUser.balance,
-                totalSent: currentUser.totalSent
-            });
-            
-            saveData();
-            closeModal('betModal');
-            showNotification(`✅ Ставка ${amount.toFixed(2)} TON принята`);
-            
-            // Обновляем топ
-            updateTopList();
-        }
-
-        // Получить топ-50
-        function getTopPlayers() {
-            // Собираем статистику по всем игрокам
-            const stats = {};
-            
-            // Добавляем всех игроков
-            players.forEach(player => {
-                stats[player.id] = {
-                    id: player.id,
-                    name: player.name,
-                    avatar: player.avatar,
-                    total: 0,
-                    count: 0
-                };
-            });
-            
-            // Суммируем ставки
-            bets.forEach(bet => {
-                if (stats[bet.userId]) {
-                    stats[bet.userId].total += bet.amount;
-                    stats[bet.userId].count++;
+            try {
+                const response = await fetch(API_URL + '/api/bet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: currentUser.id,
+                        amount: amount
+                    })
+                });
+                
+                if (response.ok) {
+                    closeModal('betModal');
+                    showNotification(`✅ Ставка ${amount.toFixed(2)} TON принята`);
+                    
+                    // Обновляем данные
+                    await loadUser();
+                    await loadTop();
+                    await loadStats();
+                } else {
+                    showNotification('❌ Ошибка при ставке');
                 }
-            });
-            
-            // Фильтруем и сортируем
-            return Object.values(stats)
-                .filter(p => p.total > 0)
-                .sort((a, b) => b.total - a.total)
-                .slice(0, 50);
+            } catch (error) {
+                showNotification('❌ Ошибка сервера');
+            }
         }
 
-        // Обновить топ
-        function updateTopList() {
-            const top = getTopPlayers();
+        // =============================================
+        // ТОП-50
+        // =============================================
+
+        async function loadTop() {
+            try {
+                const response = await fetch(API_URL + '/api/top');
+                const top = await response.json();
+                updateTopList(top);
+            } catch (error) {
+                console.error('Ошибка загрузки топа:', error);
+            }
+        }
+
+        function updateTopList(top) {
             const list = document.getElementById('topList');
             
-            if (top.length === 0) {
+            if (!top || top.length === 0) {
                 list.innerHTML = '<div class="top-item"><div class="top-rank gold">1</div><div class="top-avatar"><i class="fas fa-user"></i></div><div class="top-info"><div class="top-name">Пока нет ставок</div></div><div class="top-amount">0.00</div></div>';
                 return;
             }
@@ -863,7 +808,7 @@
                         <div class="top-avatar">${avatar}</div>
                         <div class="top-info">
                             <div class="top-name">${p.name} ${isMe ? '(вы)' : ''}</div>
-                            <div class="top-stats">${p.count} ставок</div>
+                            <div class="top-stats">${p.count || 0} ставок</div>
                         </div>
                         <div class="top-amount">
                             <span class="ton-badge">TON</span>
@@ -874,13 +819,33 @@
             }).join('');
         }
 
-        // Обновить интерфейс
+        // =============================================
+        // СТАТИСТИКА
+        // =============================================
+
+        async function loadStats() {
+            try {
+                const response = await fetch(API_URL + '/api/stats');
+                const stats = await response.json();
+                
+                document.getElementById('totalSent').innerHTML = stats.totalSent.toFixed(2) + ' TON';
+                document.getElementById('totalRoyalty').innerHTML = stats.totalRoyalty.toFixed(2) + ' TON';
+                document.getElementById('totalPlayers').innerHTML = stats.totalPlayers;
+            } catch (error) {
+                console.error('Ошибка загрузки статистики:', error);
+            }
+        }
+
+        // =============================================
+        // UI
+        // =============================================
+
         function updateUI() {
             if (!currentUser) return;
             
             document.getElementById('balanceDisplay').innerHTML = currentUser.balance.toFixed(2) + ' TON';
             document.getElementById('userName').innerHTML = currentUser.name;
-            document.getElementById('userStats').innerHTML = 'ставок: ' + (currentUser.totalSent || 0).toFixed(2) + ' TON';
+            document.getElementById('userStats').innerHTML = 'ставок: ' + (currentUser.total_sent || 0).toFixed(2) + ' TON';
             
             const avatar = document.getElementById('userAvatar');
             if (currentUser.avatar) {
@@ -888,21 +853,12 @@
             } else {
                 avatar.innerHTML = '<i class="fas fa-user"></i>';
             }
-            
-            // Общая статистика
-            const totalSent = bets.reduce((s, b) => s + b.amount, 0);
-            document.getElementById('totalSent').innerHTML = totalSent.toFixed(2) + ' TON';
-            document.getElementById('totalRoyalty').innerHTML = (totalSent * 0.1).toFixed(2) + ' TON';
-            document.getElementById('totalPlayers').innerHTML = players.length;
-            
-            // Позиция пользователя
-            const top = getTopPlayers();
-            const rank = top.findIndex(p => p.id === currentUser.id) + 1;
-            document.getElementById('userRank').innerHTML = rank > 0 ? '#' + rank : '#0';
-            document.getElementById('userPrize').innerHTML = Math.floor((currentUser.totalSent || 0) * 1.5) + ' TON';
         }
 
-        // Таймер
+        // =============================================
+        // ТАЙМЕР
+        // =============================================
+
         let timerEnd = localStorage.getItem('win_timer');
         if (!timerEnd) {
             timerEnd = Date.now() + 200 * 60 * 60 * 1000;
@@ -915,12 +871,9 @@
             const diff = timerEnd - Date.now();
             
             if (diff <= 0) {
-                const top = getTopPlayers();
-                if (top.length > 0) {
-                    showNotification(`👑 ${top[0].name} стал королем!`);
-                }
                 timerEnd = Date.now() + 200 * 60 * 60 * 1000;
                 localStorage.setItem('win_timer', timerEnd);
+                showNotification('👑 Новый король!');
             }
             
             const hours = Math.floor(Math.max(0, diff) / (60 * 60 * 1000));
@@ -931,9 +884,9 @@
                 `${hours.toString().padStart(3, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }, 1000);
 
-        // ===============================================
-        // ФУНКЦИИ
-        // ===============================================
+        // =============================================
+        // ПОПОЛНЕНИЕ
+        // =============================================
 
         function showDeposit() {
             document.getElementById('depositModal').style.display = 'flex';
@@ -954,9 +907,9 @@
             showNotification('⏳ Ожидаем оплату...');
         }
 
-        function showBetModal() {
-            document.getElementById('betModal').style.display = 'flex';
-        }
+        // =============================================
+        // УТИЛИТЫ
+        // =============================================
 
         function showNotification(text) {
             const n = document.getElementById('notification');
@@ -982,19 +935,20 @@
             if (tg) tg.close();
         }
 
-        // ===============================================
+        // =============================================
         // ЗАПУСК
-        // ===============================================
+        // =============================================
 
-        loadData();
-        getCurrentUser();
-        updateUI();
-        updateTopList();
+        // Загружаем всё при старте
+        loadUser();
+        loadTop();
+        loadStats();
         
-        // Обновляем топ каждые 5 секунд
+        // Обновляем каждые 10 секунд
         setInterval(() => {
-            updateTopList();
-        }, 5000);
+            loadTop();
+            loadStats();
+        }, 10000);
     </script>
 </body>
 </html>
