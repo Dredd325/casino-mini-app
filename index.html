@@ -9,7 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- SQL.js для работы с SQLite -->
+    <script src="https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/sql-wasm.js"></script>
     <style>
         * {
             margin: 0;
@@ -26,7 +27,6 @@
             --text-primary: #ffffff;
             --text-secondary: #888888;
             --accent-gold: #ffd966;
-            --success-green: #00aa55;
         }
 
         body {
@@ -647,14 +647,7 @@
 
             <input type="number" id="depositAmount" class="modal-input" value="1" min="0.01" step="0.01" placeholder="Сумма в TON (мин 0.01)">
 
-            <div id="depositStatus" style="display: none; background: #1a1a1a; padding: 12px; border-radius: 12px; margin-bottom: 15px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="spinner" style="width: 20px; height: 20px; border: 2px solid var(--ton-blue); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                    <span id="depositStatusText">Ожидаем оплату...</span>
-                </div>
-            </div>
-
-            <button class="modal-button" id="payButton" onclick="window.app?.processDeposit()">
+            <button class="modal-button" onclick="window.app?.processDeposit()">
                 <i class="fas fa-qrcode"></i> Оплатить
             </button>
             <button class="modal-button secondary" onclick="window.app?.closeModal('depositModal')">
@@ -682,213 +675,341 @@
 
     <div id="notification" class="notification" style="display: none;"></div>
 
-    <style>
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
-
     <script>
         // ===============================================
-        // SQL БАЗА ДАННЫХ (через localStorage с SQL структурой)
+        // SQL БАЗА ДАННЫХ
         // ===============================================
 
-        class SQLite {
+        class SQLiteDB {
             constructor() {
-                this.dbName = 'winton_db';
+                this.db = null;
+                this.ready = false;
                 this.init();
             }
 
-            init() {
-                // Создаем таблицы если их нет
-                if (!localStorage.getItem(this.dbName + '_users')) {
-                    localStorage.setItem(this.dbName + '_users', JSON.stringify([]));
+            async init() {
+                try {
+                    // SQL код из отдельного файла (вставь сюда содержимое database.sql)
+                    const SQL = await initSqlJs({
+                        locateFile: file => `https://sql.js.org/dist/${file}`
+                    });
+                    
+                    // Пытаемся загрузить сохраненную базу
+                    const saved = localStorage.getItem('sqlite_db');
+                    
+                    if (saved) {
+                        // Загружаем существующую базу
+                        const arr = this.base64ToArrayBuffer(saved);
+                        this.db = new SQL.Database(new Uint8Array(arr));
+                        console.log('База данных загружена');
+                    } else {
+                        // Создаем новую базу
+                        this.db = new SQL.Database();
+                        await this.createTables();
+                        console.log('Новая база создана');
+                    }
+                    
+                    this.ready = true;
+                    
+                    // Проверяем что топ работает
+                    this.checkTop();
+                    
+                } catch (error) {
+                    console.error('SQL Error:', error);
                 }
-                if (!localStorage.getItem(this.dbName + '_transactions')) {
-                    localStorage.setItem(this.dbName + '_transactions', JSON.stringify([]));
+            }
+
+            base64ToArrayBuffer(base64) {
+                const binaryString = atob(base64);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
                 }
-                if (!localStorage.getItem(this.dbName + '_bets')) {
-                    localStorage.setItem(this.dbName + '_bets', JSON.stringify([]));
+                return bytes.buffer;
+            }
+
+            arrayBufferToBase64(buffer) {
+                let binary = '';
+                const bytes = new Uint8Array(buffer);
+                for (let i = 0; i < bytes.byteLength; i++) {
+                    binary += String.fromCharCode(bytes[i]);
                 }
-                if (!localStorage.getItem(this.dbName + '_processed_txs')) {
-                    localStorage.setItem(this.dbName + '_processed_txs', JSON.stringify([]));
+                return btoa(binary);
+            }
+
+            save() {
+                if (!this.db) return;
+                const data = this.db.export();
+                const base64 = this.arrayBufferToBase64(data);
+                localStorage.setItem('sqlite_db', base64);
+            }
+
+            async createTables() {
+                // SQL из database.sql
+                const sql = `
+                    -- ТАБЛИЦА ПОЛЬЗОВАТЕЛЕЙ
+                    CREATE TABLE IF NOT EXISTS users (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        telegram_id TEXT UNIQUE,
+                        first_name TEXT NOT NULL,
+                        last_name TEXT,
+                        avatar TEXT,
+                        balance REAL DEFAULT 100.0,
+                        total_sent REAL DEFAULT 0.0,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        last_active DATETIME DEFAULT CURRENT_TIMESTAMP
+                    );
+
+                    -- ТАБЛИЦА СТАВОК
+                    CREATE TABLE IF NOT EXISTS bets (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        amount REAL NOT NULL,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users(id)
+                    );
+
+                    -- ТАБЛИЦА ТРАНЗАКЦИЙ
+                    CREATE TABLE IF NOT EXISTS transactions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        amount REAL NOT NULL,
+                        tx_hash TEXT UNIQUE,
+                        status TEXT DEFAULT 'pending',
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users(id)
+                    );
+
+                    -- ТАБЛИЦА НАСТРОЕК
+                    CREATE TABLE IF NOT EXISTS game_settings (
+                        key TEXT PRIMARY KEY,
+                        value TEXT NOT NULL
+                    );
+
+                    -- ИНДЕКСЫ
+                    CREATE INDEX IF NOT EXISTS idx_users_telegram ON users(telegram_id);
+                    CREATE INDEX IF NOT EXISTS idx_bets_user ON bets(user_id);
+
+                    -- НАЧАЛЬНЫЕ НАСТРОЙКИ
+                    INSERT OR IGNORE INTO game_settings (key, value) VALUES 
+                        ('king_end_time', strftime('%s', 'now', '+200 hours')),
+                        ('total_pool', '0'),
+                        ('total_royalty', '0');
+                `;
+                
+                this.db.exec(sql);
+                this.save();
+            }
+
+            checkTop() {
+                // Проверяем что топ работает
+                try {
+                    const result = this.db.exec(`
+                        SELECT 
+                            u.id,
+                            u.first_name,
+                            u.last_name,
+                            u.avatar,
+                            COUNT(b.id) as bets_count,
+                            IFNULL(SUM(b.amount), 0) as total_amount
+                        FROM users u
+                        LEFT JOIN bets b ON u.id = b.user_id
+                        GROUP BY u.id
+                        HAVING total_amount > 0
+                        ORDER BY total_amount DESC
+                        LIMIT 50
+                    `);
+                    
+                    console.log('Топ запрос работает, найдено:', result.length ? result[0].values.length : 0);
+                } catch (e) {
+                    console.error('Топ ошибка:', e);
                 }
             }
 
-            // ===== USERS TABLE =====
-            getUsers() {
-                return JSON.parse(localStorage.getItem(this.dbName + '_users') || '[]');
-            }
-
-            saveUsers(users) {
-                localStorage.setItem(this.dbName + '_users', JSON.stringify(users));
-            }
-
-            findUserById(userId) {
-                const users = this.getUsers();
-                return users.find(u => u.id === userId);
-            }
-
-            findUserByTelegramId(telegramId) {
-                const users = this.getUsers();
-                return users.find(u => u.telegramId === telegramId);
-            }
-
-            createUser(userData) {
-                const users = this.getUsers();
-                const newUser = {
-                    id: 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                    telegramId: userData.telegramId || '',
-                    name: userData.name || 'Игрок',
-                    avatar: userData.avatar || null,
-                    balance: 100,
-                    totalSent: 0,
-                    createdAt: Date.now(),
-                    lastActive: Date.now()
-                };
-                users.push(newUser);
-                this.saveUsers(users);
-                return newUser;
-            }
-
-            updateUser(userId, updates) {
-                const users = this.getUsers();
-                const index = users.findIndex(u => u.id === userId);
-                if (index !== -1) {
-                    users[index] = { ...users[index], ...updates, lastActive: Date.now() };
-                    this.saveUsers(users);
-                    return users[index];
+            // ===== ПОЛЬЗОВАТЕЛИ =====
+            
+            getUserByTelegram(telegramId) {
+                const result = this.db.exec(
+                    'SELECT * FROM users WHERE telegram_id = ?',
+                    [telegramId]
+                );
+                
+                if (result.length && result[0].values.length) {
+                    const cols = result[0].columns;
+                    const vals = result[0].values[0];
+                    return this.rowToObject(cols, vals);
                 }
                 return null;
             }
 
+            createUser(data) {
+                this.db.run(
+                    'INSERT INTO users (telegram_id, first_name, last_name, avatar) VALUES (?, ?, ?, ?)',
+                    [data.telegramId, data.firstName, data.lastName || '', data.avatar || '']
+                );
+                this.save();
+                
+                const result = this.db.exec('SELECT last_insert_rowid() as id');
+                const id = result[0].values[0][0];
+                
+                return this.getUserById(id);
+            }
+
+            getUserById(id) {
+                const result = this.db.exec('SELECT * FROM users WHERE id = ?', [id]);
+                if (result.length && result[0].values.length) {
+                    const cols = result[0].columns;
+                    const vals = result[0].values[0];
+                    return this.rowToObject(cols, vals);
+                }
+                return null;
+            }
+
+            updateUser(id, updates) {
+                const sets = [];
+                const params = [];
+                
+                Object.entries(updates).forEach(([key, value]) => {
+                    sets.push(`${key} = ?`);
+                    params.push(value);
+                });
+                
+                params.push(id);
+                
+                this.db.run(
+                    `UPDATE users SET ${sets.join(', ')}, last_active = CURRENT_TIMESTAMP WHERE id = ?`,
+                    params
+                );
+                this.save();
+                
+                return this.getUserById(id);
+            }
+
             getAllUsers() {
-                return this.getUsers();
+                const result = this.db.exec('SELECT * FROM users ORDER BY id');
+                return this.resultToArray(result);
             }
 
-            // ===== TRANSACTIONS TABLE =====
-            getTransactions() {
-                return JSON.parse(localStorage.getItem(this.dbName + '_transactions') || '[]');
-            }
+            // ===== СТАВКИ =====
 
-            saveTransactions(transactions) {
-                localStorage.setItem(this.dbName + '_transactions', JSON.stringify(transactions));
-            }
-
-            addTransaction(txData) {
-                const transactions = this.getTransactions();
-                const newTx = {
-                    id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                    ...txData,
-                    createdAt: Date.now()
-                };
-                transactions.push(newTx);
-                this.saveTransactions(transactions);
-                return newTx;
-            }
-
-            findTransactionByHash(txHash) {
-                const transactions = this.getTransactions();
-                return transactions.find(t => t.txHash === txHash);
-            }
-
-            // ===== BETS TABLE =====
-            getBets() {
-                return JSON.parse(localStorage.getItem(this.dbName + '_bets') || '[]');
-            }
-
-            saveBets(bets) {
-                localStorage.setItem(this.dbName + '_bets', JSON.stringify(bets));
-            }
-
-            addBet(betData) {
-                const bets = this.getBets();
-                const newBet = {
-                    id: 'bet_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                    ...betData,
-                    createdAt: Date.now()
-                };
-                bets.push(newBet);
-                this.saveBets(bets);
-                return newBet;
+            addBet(userId, amount) {
+                this.db.run(
+                    'INSERT INTO bets (user_id, amount) VALUES (?, ?)',
+                    [userId, amount]
+                );
+                
+                // Обновляем total_sent у пользователя
+                this.db.run(
+                    'UPDATE users SET total_sent = total_sent + ?, balance = balance - ? WHERE id = ?',
+                    [amount, amount, userId]
+                );
+                
+                // Обновляем total_pool
+                this.db.run(
+                    'UPDATE game_settings SET value = value + ? WHERE key = "total_pool"',
+                    [amount]
+                );
+                
+                // Обновляем royalty
+                this.db.run(
+                    'UPDATE game_settings SET value = value + ? WHERE key = "total_royalty"',
+                    [amount * 0.1]
+                );
+                
+                this.save();
             }
 
             getUserBets(userId) {
-                const bets = this.getBets();
-                return bets.filter(b => b.userId === userId);
+                const result = this.db.exec(
+                    'SELECT * FROM bets WHERE user_id = ? ORDER BY created_at DESC',
+                    [userId]
+                );
+                return this.resultToArray(result);
             }
 
-            // ===== PROCESSED TRANSACTIONS =====
-            getProcessedTransactions() {
-                return JSON.parse(localStorage.getItem(this.dbName + '_processed_txs') || '[]');
+            getAllBets() {
+                const result = this.db.exec('SELECT * FROM bets ORDER BY created_at');
+                return this.resultToArray(result);
             }
 
-            saveProcessedTransactions(processed) {
-                localStorage.setItem(this.dbName + '_processed_txs', JSON.stringify(processed));
-            }
+            // ===== ТОП-50 =====
 
-            isTransactionProcessed(txHash) {
-                const processed = this.getProcessedTransactions();
-                return processed.includes(txHash);
-            }
-
-            markTransactionProcessed(txHash) {
-                const processed = this.getProcessedTransactions();
-                if (!processed.includes(txHash)) {
-                    processed.push(txHash);
-                    this.saveProcessedTransactions(processed);
-                }
-            }
-        }
-
-        // ===============================================
-        // TON API
-        // ===============================================
-
-        class TONAPI {
-            constructor() {
-                this.wallet = 'UQDLH22g4oiwhpdPyljcYS6kTQQLmnFs6gNZfjizzbx9Dkpo';
-                this.apiKey = '2bb23abbae4917d842f4accd61f454f683338fc2fd5f2b2231ac4df59cd4cf2f';
-                this.baseUrl = 'https://toncenter.com/api/v2';
-            }
-
-            async getTransactions(limit = 20) {
+            getTopPlayers() {
                 try {
-                    const response = await axios.get(
-                        `${this.baseUrl}/getTransactions?address=${this.wallet}&limit=${limit}&api_key=${this.apiKey}`
-                    );
-                    return response.data;
-                } catch (error) {
-                    console.error('TON API Error:', error);
-                    return null;
+                    const result = this.db.exec(`
+                        SELECT 
+                            u.id,
+                            u.first_name,
+                            u.last_name,
+                            u.avatar,
+                            COUNT(b.id) as bets_count,
+                            IFNULL(SUM(b.amount), 0) as total_amount
+                        FROM users u
+                        LEFT JOIN bets b ON u.id = b.user_id
+                        GROUP BY u.id
+                        HAVING total_amount > 0
+                        ORDER BY total_amount DESC
+                        LIMIT 50
+                    `);
+                    
+                    return this.resultToArray(result);
+                } catch (e) {
+                    console.error('Top error:', e);
+                    return [];
                 }
             }
 
-            async checkNewPayments(lastCheck) {
-                const data = await this.getTransactions(30);
-                if (!data || !data.ok || !data.result) return [];
+            // ===== ТРАНЗАКЦИИ =====
 
-                const newPayments = [];
-                
-                for (const tx of data.result) {
-                    if (!tx.in_msg) continue;
+            addTransaction(userId, amount, txHash) {
+                this.db.run(
+                    'INSERT INTO transactions (user_id, amount, tx_hash, status) VALUES (?, ?, ?, ?)',
+                    [userId, amount, txHash, 'pending']
+                );
+                this.save();
+            }
 
-                    const txHash = tx.transaction_id?.hash;
-                    const amount = tx.in_msg.value / 1000000000;
-                    const timestamp = tx.utime * 1000;
+            confirmTransaction(txHash) {
+                this.db.run(
+                    'UPDATE transactions SET status = "confirmed" WHERE tx_hash = ?',
+                    [txHash]
+                );
+                this.save();
+            }
 
-                    // Проверяем что транзакция новая (после последней проверки)
-                    if (timestamp > lastCheck) {
-                        newPayments.push({
-                            hash: txHash,
-                            amount: amount,
-                            from: tx.in_msg.source,
-                            timestamp: timestamp
-                        });
-                    }
+            // ===== НАСТРОЙКИ =====
+
+            getGameSetting(key) {
+                const result = this.db.exec('SELECT value FROM game_settings WHERE key = ?', [key]);
+                if (result.length && result[0].values.length) {
+                    return result[0].values[0][0];
                 }
+                return null;
+            }
 
-                return newPayments;
+            setGameSetting(key, value) {
+                this.db.run(
+                    'INSERT OR REPLACE INTO game_settings (key, value) VALUES (?, ?)',
+                    [key, value.toString()]
+                );
+                this.save();
+            }
+
+            // ===== УТИЛИТЫ =====
+
+            rowToObject(cols, vals) {
+                const obj = {};
+                cols.forEach((col, i) => {
+                    obj[col] = vals[i];
+                });
+                return obj;
+            }
+
+            resultToArray(result) {
+                if (!result.length) return [];
+                
+                const cols = result[0].columns;
+                return result[0].values.map(vals => this.rowToObject(cols, vals));
             }
         }
 
@@ -898,18 +1019,26 @@
 
         class WinTonApp {
             constructor() {
-                this.db = new SQLite();
-                this.ton = new TONAPI();
+                this.db = new SQLiteDB();
                 this.tg = window.Telegram?.WebApp;
-                
                 this.user = null;
-                this.lastCheck = Date.now();
                 
-                this.init();
+                // Ждем инициализацию БД
+                this.waitForDB();
             }
 
-            async init() {
-                // Настройка Telegram
+            async waitForDB() {
+                // Ждем пока БД загрузится
+                const check = setInterval(() => {
+                    if (this.db.ready) {
+                        clearInterval(check);
+                        this.init();
+                    }
+                }, 100);
+            }
+
+            init() {
+                // Telegram
                 if (this.tg) {
                     this.tg.expand();
                     this.tg.BackButton.show();
@@ -917,155 +1046,55 @@
                     
                     const tgUser = this.tg.initDataUnsafe?.user;
                     if (tgUser) {
-                        await this.loadOrCreateUser(tgUser);
+                        this.loadUser(tgUser);
+                    } else {
+                        this.createTestUser();
                     }
+                } else {
+                    this.createTestUser();
                 }
 
-                // Загружаем пользователя
-                if (!this.user) {
-                    await this.createTestUser();
-                }
-
-                // Обновляем UI
+                // Запускаем
                 this.updateUI();
-                this.updateTopList();
-                
-                // Запускаем таймер
                 this.startTimer();
-                
-                // Запускаем проверку платежей (каждые 10 секунд)
-                this.startPaymentCheck();
+                this.startTopUpdate();
                 
                 window.app = this;
             }
 
-            async loadOrCreateUser(tgUser) {
+            loadUser(tgUser) {
                 const telegramId = tgUser.id.toString();
-                let user = this.db.findUserByTelegramId(telegramId);
-                
-                const name = tgUser.first_name + (tgUser.last_name ? ' ' + tgUser.last_name : '');
+                let user = this.db.getUserByTelegram(telegramId);
                 
                 if (user) {
-                    // Обновляем существующего пользователя
-                    user = this.db.updateUser(user.id, {
-                        name: name,
-                        avatar: tgUser.photo_url || null,
-                        lastActive: Date.now()
+                    this.user = this.db.updateUser(user.id, {
+                        first_name: tgUser.first_name,
+                        last_name: tgUser.last_name || '',
+                        avatar: tgUser.photo_url || ''
                     });
                 } else {
-                    // Создаем нового пользователя
-                    user = this.db.createUser({
+                    this.user = this.db.createUser({
                         telegramId: telegramId,
-                        name: name,
-                        avatar: tgUser.photo_url || null
+                        firstName: tgUser.first_name,
+                        lastName: tgUser.last_name || '',
+                        avatar: tgUser.photo_url || ''
                     });
                 }
-                
-                this.user = user;
             }
 
             createTestUser() {
-                const testId = 'test_' + Date.now();
-                this.user = this.db.createUser({
-                    telegramId: testId,
-                    name: 'Тестовый игрок',
-                    avatar: null
-                });
-            }
-
-            // ===============================================
-            // ПРОВЕРКА ПЛАТЕЖЕЙ (ТОЛЬКО РЕАЛЬНЫЕ ТРАНЗАКЦИИ)
-            // ===============================================
-
-            startPaymentCheck() {
-                setInterval(async () => {
-                    await this.checkPayments();
-                }, 10000);
-            }
-
-            async checkPayments() {
-                if (!this.user) return;
-
-                try {
-                    const newPayments = await this.ton.checkNewPayments(this.lastCheck);
-                    
-                    for (const payment of newPayments) {
-                        // Проверяем что транзакция еще не обработана
-                        if (!this.db.isTransactionProcessed(payment.hash)) {
-                            
-                            // Проверяем что сумма >= 0.01 TON
-                            if (payment.amount >= 0.01) {
-                                
-                                // Начисляем баланс пользователю
-                                const newBalance = this.user.balance + payment.amount;
-                                this.user = this.db.updateUser(this.user.id, {
-                                    balance: newBalance
-                                });
-
-                                // Сохраняем транзакцию в базу
-                                this.db.addTransaction({
-                                    userId: this.user.id,
-                                    type: 'deposit',
-                                    amount: payment.amount,
-                                    txHash: payment.hash,
-                                    status: 'completed'
-                                });
-
-                                // Помечаем как обработанную
-                                this.db.markTransactionProcessed(payment.hash);
-
-                                // Обновляем UI
-                                this.updateUI();
-                                
-                                // Уведомляем пользователя
-                                this.showNotification(`✅ Получено ${payment.amount.toFixed(2)} TON!`);
-                                
-                                if (this.tg) {
-                                    this.tg.HapticFeedback.notificationOccurred('success');
-                                }
-                            }
-                        }
-                    }
-                    
-                    this.lastCheck = Date.now();
-                    
-                } catch (error) {
-                    console.error('Payment check error:', error);
+                // Проверяем есть ли тестовый пользователь
+                const users = this.db.getAllUsers();
+                if (users.length > 0) {
+                    this.user = users[0];
+                } else {
+                    this.user = this.db.createUser({
+                        telegramId: 'test_' + Date.now(),
+                        firstName: 'Тестовый',
+                        lastName: 'Игрок',
+                        avatar: ''
+                    });
                 }
-            }
-
-            // ===============================================
-            // ПОПОЛНЕНИЕ
-            // ===============================================
-
-            showDeposit() {
-                document.getElementById('depositModal').style.display = 'flex';
-                document.getElementById('depositStatus').style.display = 'none';
-                document.getElementById('payButton').disabled = false;
-            }
-
-            processDeposit() {
-                const amount = parseFloat(document.getElementById('depositAmount').value);
-                
-                if (amount < 0.01) {
-                    this.showNotification('❌ Минимальная сумма 0.01 TON');
-                    return;
-                }
-
-                // Конвертируем в наноTON
-                const nanoAmount = Math.floor(amount * 1000000000);
-                
-                // Формируем ссылку на TON Keeper
-                const paymentLink = `https://app.tonkeeper.com/transfer/${this.ton.wallet}?amount=${nanoAmount}&text=WinTon%20${encodeURIComponent(this.user.name)}%20${amount}TON`;
-
-                // Показываем статус
-                document.getElementById('depositStatus').style.display = 'block';
-                document.getElementById('payButton').disabled = true;
-
-                // Открываем TON Keeper
-                window.open(paymentLink, '_blank');
-
-                this.showNotification(`⏳ Ожидаем оплату ${amount.toFixed(2)} TON`);
             }
 
             // ===============================================
@@ -1080,7 +1109,7 @@
                 const amount = parseFloat(document.getElementById('betAmount').value);
                 
                 if (amount < 0.01) {
-                    this.showNotification('❌ Минимальная ставка 0.01 TON');
+                    this.showNotification('❌ Минимум 0.01 TON');
                     return;
                 }
                 
@@ -1089,94 +1118,64 @@
                     return;
                 }
 
-                // Списываем баланс
-                const newBalance = this.user.balance - amount;
-                const newTotalSent = (this.user.totalSent || 0) + amount;
+                // Добавляем ставку в БД
+                this.db.addBet(this.user.id, amount);
                 
-                this.user = this.db.updateUser(this.user.id, {
-                    balance: newBalance,
-                    totalSent: newTotalSent
-                });
-
-                // Сохраняем ставку
-                this.db.addBet({
-                    userId: this.user.id,
-                    amount: amount,
-                    status: 'active'
-                });
+                // Обновляем пользователя
+                this.user = this.db.getUserById(this.user.id);
 
                 // Обновляем UI
                 this.updateUI();
                 this.updateTopList();
                 
                 this.closeModal('betModal');
-                
-                this.showNotification(`✅ Ставка ${amount.toFixed(2)} TON принята!`);
-                
-                if (this.tg) {
-                    this.tg.HapticFeedback.notificationOccurred('success');
-                }
+                this.showNotification(`✅ Ставка ${amount.toFixed(2)} TON`);
             }
 
             // ===============================================
             // ТОП-50
             // ===============================================
 
-            getTopPlayers() {
-                const users = this.db.getAllUsers();
+            startTopUpdate() {
+                // Первое обновление
+                setTimeout(() => this.updateTopList(), 500);
                 
-                // Фильтруем только тех кто делал ставки
-                const playersWithBets = users.filter(u => (u.totalSent || 0) > 0.001);
-                
-                // Сортируем по сумме ставок
-                const sorted = [...playersWithBets].sort((a, b) => (b.totalSent || 0) - (a.totalSent || 0));
-                
-                return sorted.slice(0, 50);
+                // Обновляем каждые 5 секунд
+                setInterval(() => this.updateTopList(), 5000);
             }
 
             updateTopList() {
-                const topPlayers = this.getTopPlayers();
-                const topList = document.getElementById('topList');
+                if (!this.db.ready) return;
+                
+                const top = this.db.getTopPlayers();
+                const list = document.getElementById('topList');
 
-                if (topPlayers.length === 0) {
-                    topList.innerHTML = `
-                        <div class="top-item">
-                            <div class="top-rank gold">1</div>
-                            <div class="top-avatar"><i class="fas fa-user"></i></div>
-                            <div class="top-info">
-                                <div class="top-name">Пока нет ставок</div>
-                                <div class="top-stats">Сделайте первую ставку!</div>
-                            </div>
-                            <div class="top-amount">0.00</div>
-                        </div>
-                    `;
+                if (top.length === 0) {
+                    list.innerHTML = '<div class="top-item"><div class="top-rank gold">1</div><div class="top-avatar"><i class="fas fa-user"></i></div><div class="top-info"><div class="top-name">Пока нет ставок</div></div><div class="top-amount">0.00</div></div>';
                     return;
                 }
 
-                topList.innerHTML = topPlayers.map((player, index) => {
+                list.innerHTML = top.map((p, i) => {
                     let rankClass = '';
-                    if (index === 0) rankClass = 'gold';
-                    else if (index === 1) rankClass = 'silver';
-                    else if (index === 2) rankClass = 'bronze';
+                    if (i === 0) rankClass = 'gold';
+                    else if (i === 1) rankClass = 'silver';
+                    else if (i === 2) rankClass = 'bronze';
                     
-                    const avatarHtml = player.avatar 
-                        ? `<img src="${player.avatar}" alt="avatar">`
-                        : `<i class="fas fa-user"></i>`;
-                    
-                    const isCurrentUser = player.id === this.user?.id;
-                    const userBets = this.db.getUserBets(player.id);
+                    const isMe = p.id === this.user?.id;
+                    const fullName = p.last_name ? `${p.first_name} ${p.last_name}` : p.first_name;
+                    const avatar = p.avatar ? `<img src="${p.avatar}">` : '<i class="fas fa-user"></i>';
                     
                     return `
-                        <div class="top-item" style="${isCurrentUser ? 'background: rgba(0,136,204,0.1); border-radius: 10px;' : ''}">
-                            <div class="top-rank ${rankClass}">${index + 1}</div>
-                            <div class="top-avatar">${avatarHtml}</div>
+                        <div class="top-item" style="${isMe ? 'background: rgba(0,136,204,0.1); border-radius: 10px;' : ''}">
+                            <div class="top-rank ${rankClass}">${i + 1}</div>
+                            <div class="top-avatar">${avatar}</div>
                             <div class="top-info">
-                                <div class="top-name">${player.name} ${isCurrentUser ? '(вы)' : ''}</div>
-                                <div class="top-stats">${userBets.length} ставок</div>
+                                <div class="top-name">${fullName} ${isMe ? '(вы)' : ''}</div>
+                                <div class="top-stats">${p.bets_count || 0} ставок</div>
                             </div>
                             <div class="top-amount">
                                 <span class="ton-badge">TON</span>
-                                ${(player.totalSent || 0).toFixed(2)}
+                                ${p.total_amount.toFixed(2)}
                             </div>
                         </div>
                     `;
@@ -1191,61 +1190,46 @@
                 if (!this.user) return;
 
                 document.getElementById('balanceDisplay').innerHTML = this.user.balance.toFixed(2) + ' TON';
+                document.getElementById('userName').innerHTML = this.user.first_name + (this.user.last_name ? ' ' + this.user.last_name : '');
+                document.getElementById('userStats').innerHTML = 'ставок: ' + (this.user.total_sent || 0).toFixed(2) + ' TON';
                 
-                const userBets = this.db.getUserBets(this.user.id);
-                document.getElementById('userStats').innerHTML = 'ставок: ' + (this.user.totalSent || 0).toFixed(2) + ' TON';
-                document.getElementById('userPrize').innerHTML = Math.floor((this.user.totalSent || 0) * 1.5) + ' TON';
-                
-                const rank = this.getUserRank();
-                document.getElementById('userRank').innerHTML = rank === 0 ? '—' : '#' + rank;
-                
-                document.getElementById('userName').innerHTML = this.user.name;
-                
-                const avatarDiv = document.getElementById('userAvatar');
+                // Аватар
+                const avatar = document.getElementById('userAvatar');
                 if (this.user.avatar) {
-                    avatarDiv.innerHTML = `<img src="${this.user.avatar}" alt="avatar">`;
-                } else {
-                    avatarDiv.innerHTML = '<i class="fas fa-user"></i>';
+                    avatar.innerHTML = `<img src="${this.user.avatar}">`;
                 }
 
-                // Обновляем статистику
-                const allUsers = this.db.getAllUsers();
-                const totalSent = allUsers.reduce((sum, u) => sum + (u.totalSent || 0), 0);
+                // Статистика
+                const totalPool = parseFloat(this.db.getGameSetting('total_pool') || '0');
+                const totalRoyalty = parseFloat(this.db.getGameSetting('total_royalty') || '0');
+                const users = this.db.getAllUsers();
                 
-                document.getElementById('totalSent').innerHTML = totalSent.toFixed(2) + ' TON';
-                document.getElementById('totalRoyalty').innerHTML = (totalSent * 0.1).toFixed(2) + ' TON';
-                document.getElementById('totalPlayers').innerHTML = allUsers.length;
-            }
-
-            getUserRank() {
-                const topPlayers = this.getTopPlayers();
-                const index = topPlayers.findIndex(p => p.id === this.user?.id);
-                return index + 1;
+                document.getElementById('totalSent').innerHTML = totalPool.toFixed(2) + ' TON';
+                document.getElementById('totalRoyalty').innerHTML = totalRoyalty.toFixed(2) + ' TON';
+                document.getElementById('totalPlayers').innerHTML = users.length;
+                
+                // Ранг
+                const top = this.db.getTopPlayers();
+                const rank = top.findIndex(p => p.id === this.user.id) + 1;
+                document.getElementById('userRank').innerHTML = rank > 0 ? '#' + rank : '—';
+                document.getElementById('userPrize').innerHTML = Math.floor((this.user.total_sent || 0) * 1.5) + ' TON';
             }
 
             startTimer() {
-                let endTime = localStorage.getItem('king_end_time');
-                if (!endTime) {
-                    endTime = Date.now() + 200 * 60 * 60 * 1000;
-                    localStorage.setItem('king_end_time', endTime);
-                } else {
-                    endTime = parseInt(endTime);
-                }
-
                 setInterval(() => {
-                    const diff = endTime - Date.now();
+                    const endTime = parseInt(this.db.getGameSetting('king_end_time') || '0');
+                    const diff = (endTime * 1000) - Date.now();
                     
                     if (diff <= 0) {
-                        // Определяем победителя
-                        const topPlayers = this.getTopPlayers();
-                        if (topPlayers.length > 0) {
-                            const winner = topPlayers[0];
-                            this.showNotification(`👑 ${winner.name} стал королем!`);
+                        // Находим победителя
+                        const top = this.db.getTopPlayers();
+                        if (top.length > 0) {
+                            this.showNotification(`👑 ${top[0].first_name} стал королем!`);
                         }
                         
-                        // Новый цикл
-                        endTime = Date.now() + 200 * 60 * 60 * 1000;
-                        localStorage.setItem('king_end_time', endTime);
+                        // Сбрасываем таймер
+                        const newEnd = Math.floor(Date.now() / 1000) + 200 * 60 * 60;
+                        this.db.setGameSetting('king_end_time', newEnd);
                     }
 
                     const hours = Math.floor(diff / (60 * 60 * 1000));
@@ -1257,13 +1241,37 @@
                 }, 1000);
             }
 
+            // ===============================================
+            // ПОПОЛНЕНИЕ
+            // ===============================================
+
+            showDeposit() {
+                document.getElementById('depositModal').style.display = 'flex';
+            }
+
+            processDeposit() {
+                const amount = parseFloat(document.getElementById('depositAmount').value);
+                
+                if (amount < 0.01) {
+                    this.showNotification('❌ Минимум 0.01 TON');
+                    return;
+                }
+
+                const nanoAmount = Math.floor(amount * 1000000000);
+                const link = `https://app.tonkeeper.com/transfer/UQDLH22g4oiwhpdPyljcYS6kTQQLmnFs6gNZfjizzbx9Dkpo?amount=${nanoAmount}&text=WinTon`;
+
+                window.open(link, '_blank');
+                this.closeModal('depositModal');
+                this.showNotification('⏳ После оплаты баланс обновится');
+                
+                // ТУТ ДОЛЖНА БЫТЬ ПРОВЕРКА ЧЕРЕЗ TON API
+            }
+
             showNotification(text) {
-                const notif = document.getElementById('notification');
-                notif.style.display = 'block';
-                notif.innerHTML = text;
-                setTimeout(() => {
-                    notif.style.display = 'none';
-                }, 3000);
+                const n = document.getElementById('notification');
+                n.style.display = 'block';
+                n.innerHTML = text;
+                setTimeout(() => n.style.display = 'none', 3000);
             }
 
             closeModal(id) {
@@ -1271,25 +1279,11 @@
             }
 
             showMenu() {
-                const userBets = this.db.getUserBets(this.user.id);
-                const totalBets = userBets.reduce((sum, b) => sum + b.amount, 0);
-                
-                this.showNotification(
-                    `👤 ${this.user.name}\n` +
-                    `💰 Баланс: ${this.user.balance.toFixed(2)} TON\n` +
-                    `🎲 Всего ставок: ${userBets.length}\n` +
-                    `📊 Общая сумма: ${totalBets.toFixed(2)} TON`
-                );
+                this.showNotification(`👤 ${this.user.first_name}\n💰 ${this.user.balance.toFixed(2)} TON`);
             }
 
             showRules() {
-                this.showNotification(
-                    '👑 ПРАВИЛА:\n\n' +
-                    '• Каждые 200ч новый король\n' +
-                    '• Король забирает весь банк\n' +
-                    '• Минимальная ставка: 0.01 TON\n' +
-                    '• 10% от ставок идут в роялти'
-                );
+                this.showNotification('👑 Каждые 200ч новый король');
             }
 
             closeApp() {
@@ -1297,7 +1291,7 @@
             }
         }
 
-        // Запуск приложения
+        // Запуск
         document.addEventListener('DOMContentLoaded', () => {
             new WinTonApp();
         });
