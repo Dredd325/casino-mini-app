@@ -2,113 +2,146 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WinTon — Царь горы</title>
-    <!-- Font Awesome для иконок (только минималистичные) -->
+    <!-- Подключаем шрифты и иконки -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Сброс стилей */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        :root {
+            --ton-blue: #0088cc;
+            --ton-dark: #006699;
+            --bg-dark: #0a0a0a;
+            --card-bg: #141414;
+            --border-color: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --accent-gold: #ffd966;
+            --accent-blue: #44aaff;
         }
 
         body {
-            background: #000;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
             display: flex;
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .app-container {
-            max-width: 420px;
+            max-width: 430px;
             width: 100%;
-            background: #000;
-            color: #fff;
+            background: var(--bg-dark);
             position: relative;
+            min-height: 100vh;
             padding-bottom: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        /* ШАПКА С ГРАДИЕНТОМ TON */
+        /* ШАПКА */
         .header {
-            background: linear-gradient(145deg, #0088cc 0%, #005f8c 100%);
-            padding: 16px 20px 30px 20px;
-            border-bottom-left-radius: 32px;
-            border-bottom-right-radius: 32px;
+            background: linear-gradient(165deg, #0066aa 0%, #004477 100%);
+            padding: 50px 20px 30px 20px;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
             position: relative;
             overflow: hidden;
         }
 
-        /* Паттерн из логотипов TON (водяной знак) */
-        .header::before {
-            content: "◈◈◈◈◈◈◈◈";
+        /* Паттерн TON */
+        .header::after {
+            content: "◈◈◈◈◈◈◈◈◈◈";
             position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 60px;
-            opacity: 0.08;
+            bottom: 10px;
+            right: -20px;
+            font-size: 80px;
+            opacity: 0.05;
             color: white;
             letter-spacing: 15px;
-            transform: rotate(10deg);
-            pointer-events: none;
-            z-index: 1;
+            transform: rotate(-5deg);
             white-space: nowrap;
+            pointer-events: none;
         }
 
         .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             position: relative;
             z-index: 2;
         }
 
         .close-btn {
-            color: white;
+            color: var(--text-primary);
             font-size: 16px;
-            font-weight: 400;
+            font-weight: 500;
             opacity: 0.9;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
         }
 
         .title-section {
             text-align: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         .main-title {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 800;
-            line-height: 1;
-            color: white;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .main-title i {
-            font-size: 20px;
-            margin-right: 5px;
+            font-size: 24px;
             color: #ffffff;
         }
 
         .sub-title {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.7);
             letter-spacing: 0.5px;
             margin-top: 2px;
         }
 
         .menu-btn {
-            width: 42px;
-            height: 42px;
-            border: 1.5px solid rgba(255, 255, 255, 0.7);
+            width: 44px;
+            height: 44px;
+            border: 1.5px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             gap: 4px;
-            background: transparent;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
             cursor: pointer;
         }
 
@@ -119,262 +152,367 @@
             border-radius: 50%;
         }
 
-        /* Плашка с TON */
-        .ton-chip {
-            background: #0b2b3f;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 40px;
-            padding: 8px 18px;
-            display: inline-flex;
+        /* Блок баланса */
+        .balance-container {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             position: relative;
             z-index: 2;
         }
 
-        .ton-icon {
-            font-size: 20px;
-            color: #ffffff;
+        .balance-card {
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
         }
 
-        .ton-chip span {
-            font-weight: 600;
+        .balance-icon {
+            background: var(--ton-blue);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .balance-icon i {
+            font-size: 20px;
+            color: white;
+        }
+
+        .balance-info {
+            flex: 1;
+        }
+
+        .balance-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            font-weight: 500;
+        }
+
+        .balance-amount {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent-gold);
+            line-height: 1.2;
+        }
+
+        .gift-chip {
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .gift-chip i {
+            color: var(--ton-blue);
+            font-size: 18px;
+        }
+
+        .gift-chip span {
+            font-weight: 700;
             font-size: 18px;
             color: white;
         }
 
         /* Таймер */
-        .timer-block {
+        .timer-container {
             text-align: center;
             position: relative;
             z-index: 2;
         }
 
-        .main-timer {
-            font-size: 62px;
-            font-weight: 800;
-            letter-spacing: 4px;
-            line-height: 1;
-            color: white;
-            text-shadow: 0 0 15px rgba(0,160,255,0.7);
-            margin-bottom: 10px;
-            font-family: 'Courier New', monospace;
-        }
-
         .timer-label {
-            font-size: 14px;
+            font-size: 13px;
+            font-weight: 600;
             color: rgba(255,255,255,0.6);
             letter-spacing: 1px;
             margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .main-timer {
+            font-family: 'Inter', monospace;
+            font-size: 58px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            line-height: 1;
+            color: var(--text-primary);
+            text-shadow: 0 0 20px rgba(0,136,204,0.5);
+            margin-bottom: 5px;
+            background: linear-gradient(180deg, #fff 0%, #aaddff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .timer-sub {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            font-weight: 500;
         }
 
         /* Баннер */
         .banner {
-            background: #024561;
-            border-bottom-left-radius: 40px;
-            border-bottom-right-radius: 40px;
-            padding: 20px 25px;
+            background: #022b40;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            padding: 18px 20px;
             margin-top: -10px;
             position: relative;
             z-index: 3;
+            border: 1px solid rgba(0,136,204,0.3);
+            border-top: none;
         }
 
         .banner-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             color: white;
             margin-bottom: 5px;
         }
 
         .banner-link {
-            color: #8fcbff;
-            font-size: 16px;
-            font-weight: 500;
+            color: var(--accent-blue);
+            font-size: 15px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
             cursor: pointer;
         }
 
-        .banner-link i {
-            font-size: 14px;
-        }
-
-        /* Черный блок */
-        .black-content {
-            background: #000;
+        /* Основной контент */
+        .content {
             padding: 25px 16px 10px 16px;
         }
 
-        /* Карточки статистики с TON лого */
-        .stats-row {
-            display: flex;
+        /* Карточки статистики */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 12px;
             margin-bottom: 30px;
         }
 
-        .stat-card {
-            flex: 1;
-            background: #151515;
+        .stat-item {
+            background: var(--card-bg);
             border-radius: 20px;
-            padding: 15px 5px;
+            padding: 18px 8px;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid #2a2a2a;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s;
+        }
+
+        .stat-item:active {
+            transform: scale(0.98);
         }
 
         .stat-icon {
-            font-size: 24px;
-            color: #44aaff;
-            line-height: 1;
-        }
-
-        .stat-icon .ton-logo {
-            font-weight: 900;
-            color: #ffffff;
-            background: #0088cc;
-            width: 24px;
-            height: 24px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0,136,204,0.1);
             border-radius: 50%;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            margin: 0 auto 10px;
+        }
+
+        .stat-icon i {
+            font-size: 20px;
+            color: var(--ton-blue);
         }
 
         .stat-label {
-            font-size: 13px;
-            color: #aaa;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-bottom: 5px;
         }
 
         .stat-value {
             font-size: 22px;
-            font-weight: 700;
-            color: white;
+            font-weight: 800;
+            color: var(--text-primary);
         }
 
-        /* Ваша позиция */
-        .position-header {
+        /* Секция позиции */
+        .section-header {
             display: flex;
             justify-content: space-between;
-            color: #666;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            align-items: center;
             margin-bottom: 15px;
         }
 
-        .user-row {
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-title i {
+            color: var(--ton-blue);
+            margin-right: 5px;
+        }
+
+        .prize-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+        }
+
+        /* Карточка пользователя */
+        .user-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 60px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            background: #0f0f0f;
-            padding: 10px 16px;
-            border-radius: 60px;
+            gap: 15px;
             margin-bottom: 30px;
-            border: 1px solid #252525;
+            transition: 0.2s;
         }
 
         .user-rank {
-            font-size: 22px;
-            font-weight: 600;
-            color: #44aaff;
-            min-width: 30px;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--ton-blue);
+            min-width: 45px;
         }
 
         .user-avatar {
-            width: 44px;
-            height: 44px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #44aaff;
-            font-size: 24px;
-            border: 2px solid #44aaff;
+            border: 2px solid var(--ton-blue);
+        }
+
+        .user-avatar i {
+            font-size: 26px;
+            color: var(--ton-blue);
+        }
+
+        .user-info {
+            flex: 1;
         }
 
         .user-name {
-            flex: 1;
-            font-weight: 500;
+            font-weight: 600;
             font-size: 16px;
             color: white;
+            margin-bottom: 3px;
+        }
+
+        .user-stats {
+            font-size: 12px;
+            color: var(--text-secondary);
         }
 
         .user-prize {
-            font-size: 20px;
-            font-weight: 600;
-            color: #ffd966;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--accent-gold);
         }
 
-        /* Топ 3 */
-        .top3-header {
-            color: #666;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            margin-bottom: 20px;
+        /* Топ-3 */
+        .top-list {
+            margin-bottom: 30px;
         }
 
-        .top-row {
+        .top-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 18px;
-            padding: 5px 0;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .rank-badge {
-            width: 38px;
-            height: 38px;
+        .top-rank {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: #0088cc;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 18px;
+            font-size: 16px;
+            background: var(--ton-blue);
             color: white;
-            box-shadow: 0 0 10px rgba(0,136,204,0.3);
         }
 
-        .rank-avatar {
+        .top-rank.gold { background: #f5a623; }
+        .top-rank.silver { background: #9b9b9b; }
+        .top-rank.bronze { background: #b87333; }
+
+        .top-avatar {
             width: 44px;
             height: 44px;
             border-radius: 50%;
             background: #1a1a1a;
-            border: 2px solid #0088cc;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #44aaff;
-            font-size: 24px;
+            border: 2px solid var(--ton-blue);
+        }
+
+        .top-avatar i {
+            font-size: 22px;
+            color: var(--ton-blue);
+        }
+
+        .top-info {
+            flex: 1;
         }
 
         .top-name {
-            flex: 1;
-            font-weight: 500;
-            color: white;
-        }
-
-        .top-bet {
-            color: #ffd966;
             font-weight: 600;
             font-size: 16px;
+            color: white;
+            margin-bottom: 3px;
+        }
+
+        .top-date {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .top-amount {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--accent-gold);
             display: flex;
             align-items: center;
             gap: 5px;
         }
 
-        .ton-symbol {
-            background: #0088cc;
+        .ton-badge {
+            background: var(--ton-blue);
             color: white;
             width: 22px;
             height: 22px;
@@ -382,78 +520,49 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            font-weight: 900;
+            font-size: 11px;
+            font-weight: 800;
         }
 
         /* Кнопка */
-        .footer-button {
-            background: #0088cc;
+        .action-button {
+            background: linear-gradient(135deg, var(--ton-blue), var(--ton-dark));
             border-radius: 40px;
-            padding: 20px 24px;
-            margin: 30px 16px 10px 16px;
+            padding: 22px 24px;
+            margin: 20px 16px 10px 16px;
             text-align: center;
             font-weight: 700;
             font-size: 20px;
             color: white;
-            box-shadow: 0 10px 20px rgba(0,136,204,0.3);
-            transition: 0.2s;
+            box-shadow: 0 10px 25px rgba(0,136,204,0.3);
+            transition: all 0.2s;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
+            border: none;
+            width: calc(100% - 32px);
         }
 
-        .footer-button:active {
-            transform: scale(0.98);
-            background: #006699;
+        .action-button:active {
+            transform: scale(0.97);
+            box-shadow: 0 5px 15px rgba(0,136,204,0.5);
         }
 
         .footer-note {
             text-align: center;
-            color: #666;
+            color: var(--text-secondary);
             font-size: 13px;
-            margin: 8px 0 20px;
-        }
-
-        .footer-note i {
-            color: #0088cc;
-            margin: 0 3px;
-        }
-
-        /* Баланс */
-        .balance-badge {
-            background: #151515;
-            border-radius: 30px;
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid #2a2a2a;
-            margin-bottom: 15px;
-        }
-
-        .balance-icon {
-            background: #0088cc;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+            margin: 15px 0 25px;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 8px;
         }
 
-        .balance-text {
-            font-weight: 600;
-            font-size: 18px;
-        }
-
-        .balance-amount {
-            font-weight: 700;
-            font-size: 22px;
-            color: #ffd966;
-            margin-left: auto;
+        .footer-note i {
+            color: var(--ton-blue);
         }
 
         /* Уведомления */
@@ -462,17 +571,69 @@
             bottom: 100px;
             left: 50%;
             transform: translateX(-50%);
-            background: #151515;
-            border-left: 4px solid #0088cc;
-            padding: 12px 24px;
-            border-radius: 12px;
+            background: var(--card-bg);
+            border-left: 4px solid var(--ton-blue);
+            padding: 16px 24px;
+            border-radius: 16px;
             color: white;
-            font-weight: 500;
+            font-weight: 600;
             z-index: 1000;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
             transition: 0.3s;
-            max-width: 300px;
+            max-width: 320px;
+            width: 90%;
             text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Модальное окно */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 30px;
+            padding: 30px;
+            max-width: 340px;
+            width: 90%;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: var(--ton-blue);
+        }
+
+        .modal-text {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .modal-button {
+            background: var(--ton-blue);
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 16px;
+            border-radius: 30px;
+            width: 100%;
+            font-size: 16px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -481,12 +642,14 @@
         <!-- ШАПКА -->
         <div class="header">
             <div class="header-top">
-                <span class="close-btn" onclick="closeApp()"><i class="fas fa-arrow-left"></i> Закрыть</span>
+                <div class="close-btn" onclick="closeApp()">
+                    <i class="fas fa-chevron-left"></i> Закрыть
+                </div>
                 <div class="title-section">
                     <div class="main-title">
                         <i class="fab fa-telegram"></i> WinTon
                     </div>
-                    <div class="sub-title">мини-приложение</div>
+                    <div class="sub-title">царь горы</div>
                 </div>
                 <div class="menu-btn" onclick="showMenu()">
                     <div class="menu-dot"></div>
@@ -496,293 +659,564 @@
             </div>
 
             <!-- Баланс -->
-            <div class="balance-badge">
-                <div class="balance-icon">
-                    <i class="fas fa-coins" style="color: white; font-size: 16px;"></i>
+            <div class="balance-container">
+                <div class="balance-card">
+                    <div class="balance-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="balance-info">
+                        <div class="balance-label">Баланс</div>
+                        <div class="balance-amount" id="balanceDisplay">0 TON</div>
+                    </div>
                 </div>
-                <span class="balance-text">Баланс</span>
-                <span class="balance-amount" id="balanceDisplay">100 TON</span>
-            </div>
-
-            <!-- Плашка TON -->
-            <div class="ton-chip" onclick="showTonInfo()">
-                <i class="fas fa-gift ton-icon"></i>
-                <span>10 TON</span>
-                <i class="fas fa-chevron-right" style="color: rgba(255,255,255,0.5; margin-left: auto; font-size: 14px;"></i>
+                <div class="gift-chip" onclick="showDeposit()">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>10 TON</span>
+                </div>
             </div>
 
             <!-- Таймер -->
-            <div class="timer-block">
-                <div class="timer-label">ДО КОРОНАЦИИ</div>
-                <div class="main-timer" id="timerDisplay">200:15:24</div>
+            <div class="timer-container">
+                <div class="timer-label">НОВЫЙ КОРОЛЬ ЧЕРЕЗ</div>
+                <div class="main-timer" id="timerDisplay">200:00:00</div>
+                <div class="timer-sub">ставь и забирай всё</div>
             </div>
         </div>
 
         <!-- БАННЕР -->
-        <div class="banner">
-            <div class="banner-title">Царь горы заберет больше всех</div>
-            <div class="banner-link" onclick="showRules()">
-                Узнать больше <i class="fas fa-arrow-right"></i>
+        <div class="banner" onclick="showRules()">
+            <div class="banner-title">👑 Царь горы заберет больше всех</div>
+            <div class="banner-link">
+                Узнать правила <i class="fas fa-arrow-right"></i>
             </div>
         </div>
 
-        <!-- ЧЕРНЫЙ БЛОК -->
-        <div class="black-content">
-            <!-- Три карточки статистики -->
-            <div class="stats-row">
-                <div class="stat-card">
+        <!-- ОСНОВНОЙ КОНТЕНТ -->
+        <div class="content">
+            <!-- Статистика -->
+            <div class="stats-grid">
+                <div class="stat-item">
                     <div class="stat-icon">
-                        <span class="ton-logo">TON</span>
+                        <i class="fas fa-paper-plane"></i>
                     </div>
                     <div class="stat-label">отправлено</div>
-                    <div class="stat-value" id="sentAmount">1.2K</div>
+                    <div class="stat-value" id="totalSent">0</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-item">
                     <div class="stat-icon">
                         <i class="fas fa-crown"></i>
                     </div>
                     <div class="stat-label">роялти</div>
-                    <div class="stat-value" id="royaltyAmount">0.8K</div>
+                    <div class="stat-value" id="totalRoyalty">0</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-item">
                     <div class="stat-icon">
-                        <i class="fas fa-link"></i>
+                        <i class="fas fa-users"></i>
                     </div>
-                    <div class="stat-label">реф. награды</div>
-                    <div class="stat-value" id="refAmount">0.3K</div>
+                    <div class="stat-label">игроков</div>
+                    <div class="stat-value" id="totalPlayers">0</div>
                 </div>
             </div>
 
             <!-- ВАША ПОЗИЦИЯ -->
-            <div class="position-header">
-                <span><i class="fas fa-chess-queen" style="color: #0088cc; margin-right: 5px;"></i> ВАША ПОЗИЦИЯ</span>
-                <span><i class="fas fa-gift" style="color: #ffd966; margin-right: 5px;"></i> ВОЗМОЖНЫЙ ПРИЗ</span>
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="fas fa-chess-queen"></i> ВАША ПОЗИЦИЯ
+                </div>
+                <div class="prize-label">
+                    <i class="fas fa-gift"></i> ПРИЗ
+                </div>
             </div>
-            <div class="user-row">
-                <span class="user-rank" id="userRank">#0</span>
-                <div class="user-avatar">
+
+            <div class="user-card" id="userCard">
+                <div class="user-rank" id="userRank">#0</div>
+                <div class="user-avatar" id="userAvatar">
                     <i class="fas fa-user"></i>
                 </div>
-                <span class="user-name" id="userName">mogged | bigx crypto</span>
-                <span class="user-prize" id="userPrize">0 TON</span>
-            </div>
-
-            <!-- ТОП 3 -->
-            <div class="top3-header">
-                <i class="fas fa-trophy" style="color: #ffd966; margin-right: 5px;"></i> 
-                ТОП 3 ИЗ 100 ПОСЛЕДНИХ ОТПРАВИТЕЛЕЙ
-            </div>
-
-            <!-- 1 место -->
-            <div class="top-row" id="top1">
-                <div class="rank-badge">1</div>
-                <div class="rank-avatar">
-                    <i class="fas fa-user-astronaut"></i>
+                <div class="user-info">
+                    <div class="user-name" id="userName">Загрузка...</div>
+                    <div class="user-stats" id="userStats">ставок: 0</div>
                 </div>
-                <span class="top-name" id="top1Name">cryptoking</span>
-                <span class="top-bet" id="top1Bet"><span class="ton-symbol">TON</span> 2.5K</span>
+                <div class="user-prize" id="userPrize">0</div>
             </div>
 
-            <!-- 2 место -->
-            <div class="top-row" id="top2">
-                <div class="rank-badge" style="background: #666;">2</div>
-                <div class="rank-avatar">
-                    <i class="fas fa-user-ninja"></i>
+            <!-- ТОП-3 -->
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="fas fa-trophy"></i> ТОП-3 СЕГОДНЯ
                 </div>
-                <span class="top-name" id="top2Name">ton_staker</span>
-                <span class="top-bet" id="top2Bet"><span class="ton-symbol">TON</span> 1.8K</span>
+                <div class="prize-label">ВЫИГРЫШ</div>
             </div>
 
-            <!-- 3 место -->
-            <div class="top-row" id="top3">
-                <div class="rank-badge" style="background: #b87333;">3</div>
-                <div class="rank-avatar">
-                    <i class="fas fa-user-secret"></i>
-                </div>
-                <span class="top-name" id="top3Name">whale_alert</span>
-                <span class="top-bet" id="top3Bet"><span class="ton-symbol">TON</span> 1.2K</span>
+            <div class="top-list" id="topList">
+                <!-- Здесь будут топ-3 через JavaScript -->
             </div>
         </div>
 
-        <!-- FOOTER КНОПКА -->
-        <div class="footer-button" onclick="sendGift()">
-            <i class="fas fa-paper-plane"></i> Отправить подарок
-        </div>
+        <!-- КНОПКА -->
+        <button class="action-button" onclick="sendGift()">
+            <i class="fas fa-paper-plane"></i>
+            Отправить подарок (10 TON)
+        </button>
+        
         <div class="footer-note">
-            <i class="fas fa-telegram"></i> можно отправить свои подарки через Telegram <i class="fas fa-telegram"></i>
+            <i class="fab fa-telegram"></i>
+            реальные люди • честная игра • TON
+            <i class="fab fa-telegram"></i>
         </div>
     </div>
 
-    <!-- Уведомление (скрыто по умолчанию) -->
+    <!-- Уведомление -->
     <div id="notification" class="notification" style="display: none;"></div>
 
     <script>
-        // Telegram Mini App
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.expand();
-            tg.BackButton.show();
-            tg.BackButton.onClick(() => tg.close());
-        }
-
-        // Данные пользователя
-        let userBalance = 100;
-        let userName = "mogged | bigx crypto";
-        let userRank = 0;
-        let userPrize = 0;
+        // ===============================================
+        // БАЗА ДАННЫХ (localStorage с синхронизацией)
+        // ===============================================
         
-        // Таймер на 200 часов
-        let endTime = Date.now() + 200 * 60 * 60 * 1000;
-
-        // Загружаем сохраненные данные
-        loadData();
-
-        // Обновление UI
-        function updateUI() {
-            document.getElementById('balanceDisplay').innerText = userBalance + ' TON';
-            document.getElementById('userRank').innerText = '#' + userRank;
-            document.getElementById('userPrize').innerText = userPrize + ' TON';
-        }
-
-        // Таймер
-        function updateTimer() {
-            const now = Date.now();
-            const diff = endTime - now;
-
-            if (diff <= 0) {
-                // Новый цикл
-                endTime = Date.now() + 200 * 60 * 60 * 1000;
-                checkWinner();
+        class Database {
+            constructor() {
+                this.KEY = 'winton_game_data';
+                this.USERS_KEY = 'winton_users';
+                this.TRANSACTIONS_KEY = 'winton_transactions';
+                this.init();
             }
 
-            const hours = Math.floor(diff / (60 * 60 * 1000));
-            const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-            const seconds = Math.floor((diff % (60 * 1000)) / 1000);
+            init() {
+                // Создаем базу если её нет
+                if (!localStorage.getItem(this.KEY)) {
+                    localStorage.setItem(this.KEY, JSON.stringify({
+                        totalSent: 0,
+                        totalRoyalty: 0,
+                        totalPlayers: 0,
+                        lastUpdate: Date.now(),
+                        currentKing: null,
+                        kingEndTime: Date.now() + 200 * 60 * 60 * 1000
+                    }));
+                }
 
-            const formatted = `${hours.toString().padStart(3, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            document.getElementById('timerDisplay').innerText = formatted;
-        }
+                if (!localStorage.getItem(this.USERS_KEY)) {
+                    localStorage.setItem(this.USERS_KEY, JSON.stringify([]));
+                }
 
-        setInterval(updateTimer, 1000);
-
-        // Проверка победителя
-        function checkWinner() {
-            // Здесь логика определения короля
-            showNotification('👑 Новый король! Банк распределен');
-        }
-
-        // Отправка подарка
-        function sendGift() {
-            const giftAmount = 10;
-            
-            if (userBalance < giftAmount) {
-                showNotification('❌ Недостаточно TON!');
-                return;
+                if (!localStorage.getItem(this.TRANSACTIONS_KEY)) {
+                    localStorage.setItem(this.TRANSACTIONS_KEY, JSON.stringify([]));
+                }
             }
 
-            userBalance -= giftAmount;
-            userRank = Math.max(1, userRank + 1);
-            userPrize += giftAmount * 2;
+            // Получить данные игры
+            getGameData() {
+                return JSON.parse(localStorage.getItem(this.KEY));
+            }
 
-            // Обновляем статистику
-            updateStats(giftAmount);
-            
-            // Сохраняем
-            saveData();
-            updateUI();
+            // Сохранить данные игры
+            setGameData(data) {
+                localStorage.setItem(this.KEY, JSON.stringify(data));
+            }
 
-            // Уведомление
-            showNotification('✅ Подарок отправлен! +' + (giftAmount * 2) + ' TON к призу');
-            
-            // Вибрация в Telegram
-            if (tg) tg.HapticFeedback.notificationOccurred('success');
-        }
+            // Получить всех пользователей
+            getUsers() {
+                return JSON.parse(localStorage.getItem(this.USERS_KEY));
+            }
 
-        // Обновление статистики
-        function updateStats(amount) {
-            let sent = parseInt(document.getElementById('sentAmount').innerText);
-            let royalty = parseInt(document.getElementById('royaltyAmount').innerText);
-            
-            sent += amount;
-            royalty += Math.floor(amount * 0.1);
-            
-            document.getElementById('sentAmount').innerText = sent + ' TON';
-            document.getElementById('royaltyAmount').innerText = royalty + ' TON';
-        }
+            // Сохранить пользователей
+            setUsers(users) {
+                localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
+            }
 
-        // Показать уведомление
-        function showNotification(message) {
-            const notif = document.getElementById('notification');
-            notif.style.display = 'block';
-            notif.innerText = message;
-            
-            setTimeout(() => {
-                notif.style.display = 'none';
-            }, 3000);
-        }
+            // Получить текущего пользователя
+            getCurrentUser() {
+                const userId = this.getCurrentUserId();
+                const users = this.getUsers();
+                return users.find(u => u.id === userId) || this.createUser(userId);
+            }
 
-        // Сохранение данных
-        function saveData() {
-            localStorage.setItem('userBalance', userBalance);
-            localStorage.setItem('userRank', userRank);
-            localStorage.setItem('userPrize', userPrize);
-            localStorage.setItem('userName', userName);
-        }
+            // Получить ID текущего пользователя (из Telegram)
+            getCurrentUserId() {
+                if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+                    return window.Telegram.WebApp.initDataUnsafe.user.id.toString();
+                }
+                // Для теста вне Telegram
+                let testId = localStorage.getItem('test_user_id');
+                if (!testId) {
+                    testId = 'user_' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('test_user_id', testId);
+                }
+                return testId;
+            }
 
-        // Загрузка данных
-        function loadData() {
-            userBalance = parseInt(localStorage.getItem('userBalance')) || 100;
-            userRank = parseInt(localStorage.getItem('userRank')) || 0;
-            userPrize = parseInt(localStorage.getItem('userPrize')) || 0;
-            userName = localStorage.getItem('userName') || 'mogged | bigx crypto';
-            
-            updateUI();
-        }
+            // Создать нового пользователя
+            createUser(userId) {
+                const users = this.getUsers();
+                const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+                
+                const newUser = {
+                    id: userId,
+                    name: telegramUser?.first_name || 'Игрок ' + Math.floor(Math.random() * 1000),
+                    username: telegramUser?.username || '',
+                    avatar: telegramUser?.photo_url || '',
+                    balance: 100, // Стартовый баланс
+                    totalSent: 0,
+                    totalWon: 0,
+                    rank: users.length + 1,
+                    lastActive: Date.now(),
+                    registeredAt: Date.now(),
+                    bets: []
+                };
 
-        // Показать информацию о TON
-        function showTonInfo() {
-            showNotification('💎 TON - блокчейн будущего');
-        }
+                users.push(newUser);
+                this.setUsers(users);
 
-        // Показать правила
-        function showRules() {
-            const rules = '👑 ЦАРЬ ГОРЫ\n\n' +
-                         '• Каждые 200 часов новый король\n' +
-                         '• Кто отправил больше всех - побеждает\n' +
-                         '• Приз = сумма всех отправленных TON\n' +
-                         '• Топ-3 получают бонусы';
-            
-            if (tg) {
-                tg.showAlert(rules);
-            } else {
-                alert(rules);
+                // Обновляем общее количество игроков
+                const gameData = this.getGameData();
+                gameData.totalPlayers = users.length;
+                this.setGameData(gameData);
+
+                return newUser;
+            }
+
+            // Обновить пользователя
+            updateUser(userId, updates) {
+                const users = this.getUsers();
+                const index = users.findIndex(u => u.id === userId);
+                if (index !== -1) {
+                    users[index] = { ...users[index], ...updates, lastActive: Date.now() };
+                    this.setUsers(users);
+                    return users[index];
+                }
+                return null;
+            }
+
+            // Добавить транзакцию
+            addTransaction(transaction) {
+                const transactions = JSON.parse(localStorage.getItem(this.TRANSACTIONS_KEY));
+                transactions.push({
+                    id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                    ...transaction,
+                    timestamp: Date.now()
+                });
+                localStorage.setItem(this.TRANSACTIONS_KEY, JSON.stringify(transactions));
+            }
+
+            // Получить топ игроков
+            getTopPlayers(limit = 3) {
+                const users = this.getUsers();
+                return users
+                    .filter(u => u.totalSent > 0)
+                    .sort((a, b) => b.totalSent - a.totalSent)
+                    .slice(0, limit);
+            }
+
+            // Обновить статистику игры
+            updateGameStats(amount, userId) {
+                const gameData = this.getGameData();
+                gameData.totalSent += amount;
+                gameData.totalRoyalty += Math.floor(amount * 0.1);
+                gameData.lastUpdate = Date.now();
+                this.setGameData(gameData);
+
+                // Обновляем пользователя
+                const user = this.getCurrentUser();
+                user.totalSent += amount;
+                user.balance -= amount;
+                this.updateUser(user.id, user);
+
+                // Добавляем транзакцию
+                this.addTransaction({
+                    userId: userId,
+                    amount: amount,
+                    type: 'send',
+                    balance: user.balance
+                });
+
+                return gameData;
+            }
+
+            // Проверить и обновить короля
+            checkAndUpdateKing() {
+                const gameData = this.getGameData();
+                const now = Date.now();
+
+                if (now >= gameData.kingEndTime) {
+                    // Находим победителя
+                    const topPlayers = this.getTopPlayers(1);
+                    if (topPlayers.length > 0) {
+                        const winner = topPlayers[0];
+                        
+                        // Начисляем приз
+                        const prize = gameData.totalSent;
+                        winner.totalWon += prize;
+                        winner.balance += prize;
+                        this.updateUser(winner.id, winner);
+
+                        // Добавляем транзакцию
+                        this.addTransaction({
+                            userId: winner.id,
+                            amount: prize,
+                            type: 'win',
+                            balance: winner.balance
+                        });
+
+                        // Показываем уведомление
+                        this.showWinnerNotification(winner, prize);
+                    }
+
+                    // Сбрасываем игру
+                    gameData.totalSent = 0;
+                    gameData.totalRoyalty = 0;
+                    gameData.kingEndTime = now + 200 * 60 * 60 * 1000;
+                    gameData.currentKing = null;
+                    this.setGameData(gameData);
+
+                    return true;
+                }
+                return false;
+            }
+
+            // Показать уведомление о победителе
+            showWinnerNotification(winner, prize) {
+                const message = `👑 НОВЫЙ КОРОЛЬ!\n\n${winner.name} забрал ${prize} TON`;
+                if (window.Telegram?.WebApp) {
+                    window.Telegram.WebApp.showAlert(message);
+                } else {
+                    alert(message);
+                }
             }
         }
 
-        // Меню
-        function showMenu() {
-            const menu = 'Меню:\n' +
-                        '• 👑 Царь горы\n' +
-                        '• 💰 Пополнить TON\n' +
-                        '• 🎁 Мои подарки\n' +
-                        '• 👥 Рефералы';
-            
-            if (tg) {
-                tg.showAlert(menu);
-            } else {
-                alert(menu);
+        // ===============================================
+        // ОСНОВНОЙ КЛАСС ПРИЛОЖЕНИЯ
+        // ===============================================
+
+        class WinTonApp {
+            constructor() {
+                this.db = new Database();
+                this.user = null;
+                this.gameData = null;
+                this.tg = window.Telegram?.WebApp;
+                
+                this.init();
+            }
+
+            init() {
+                // Инициализация Telegram
+                if (this.tg) {
+                    this.tg.expand();
+                    this.tg.BackButton.show();
+                    this.tg.BackButton.onClick(() => this.closeApp());
+                    this.tg.enableClosingConfirmation();
+                }
+
+                // Загружаем данные
+                this.user = this.db.getCurrentUser();
+                this.gameData = this.db.getGameData();
+
+                // Обновляем UI
+                this.updateUI();
+
+                // Запускаем таймер
+                this.startTimer();
+
+                // Проверяем короля каждую минуту
+                setInterval(() => this.checkKing(), 60000);
+            }
+
+            updateUI() {
+                // Обновляем баланс
+                document.getElementById('balanceDisplay').textContent = this.user.balance + ' TON';
+
+                // Обновляем статистику
+                document.getElementById('totalSent').textContent = this.gameData.totalSent;
+                document.getElementById('totalRoyalty').textContent = this.gameData.totalRoyalty;
+                document.getElementById('totalPlayers').textContent = this.gameData.totalPlayers;
+
+                // Обновляем позицию пользователя
+                document.getElementById('userRank').textContent = '#' + this.user.rank;
+                document.getElementById('userName').textContent = this.user.name;
+                document.getElementById('userStats').textContent = `ставок: ${this.user.totalSent}`;
+                document.getElementById('userPrize').textContent = this.calculatePrize() + ' TON';
+
+                // Обновляем топ-3
+                this.updateTopList();
+            }
+
+            updateTopList() {
+                const topPlayers = this.db.getTopPlayers(3);
+                const topList = document.getElementById('topList');
+                
+                topList.innerHTML = topPlayers.map((player, index) => {
+                    const rankClass = index === 0 ? 'gold' : (index === 1 ? 'silver' : 'bronze');
+                    return `
+                        <div class="top-item">
+                            <div class="top-rank ${rankClass}">${index + 1}</div>
+                            <div class="top-avatar">
+                                <i class="fas ${this.getAvatarIcon(index)}"></i>
+                            </div>
+                            <div class="top-info">
+                                <div class="top-name">${player.name}</div>
+                                <div class="top-date">${this.formatDate(player.lastActive)}</div>
+                            </div>
+                            <div class="top-amount">
+                                <span class="ton-badge">TON</span>
+                                ${player.totalSent}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            getAvatarIcon(index) {
+                const icons = ['fa-crown', 'fa-star', 'fa-rocket'];
+                return icons[index] || 'fa-user';
+            }
+
+            formatDate(timestamp) {
+                const date = new Date(timestamp);
+                const today = new Date();
+                const diff = today - date;
+                
+                if (diff < 86400000) {
+                    return 'сегодня';
+                } else if (diff < 172800000) {
+                    return 'вчера';
+                } else {
+                    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+                }
+            }
+
+            calculatePrize() {
+                // Простой расчет приза (можно усложнить)
+                return Math.floor(this.user.totalSent * 1.5);
+            }
+
+            startTimer() {
+                const updateTimer = () => {
+                    const now = Date.now();
+                    const diff = this.gameData.kingEndTime - now;
+
+                    if (diff <= 0) {
+                        this.db.checkAndUpdateKing();
+                        this.gameData = this.db.getGameData();
+                    }
+
+                    const hours = Math.floor(diff / (60 * 60 * 1000));
+                    const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+                    const seconds = Math.floor((diff % (60 * 1000)) / 1000);
+
+                    document.getElementById('timerDisplay').textContent = 
+                        `${hours.toString().padStart(3, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                };
+
+                updateTimer();
+                setInterval(updateTimer, 1000);
+            }
+
+            checkKing() {
+                if (this.db.checkAndUpdateKing()) {
+                    this.gameData = this.db.getGameData();
+                    this.updateUI();
+                }
+            }
+
+            sendGift() {
+                const amount = 10;
+
+                if (this.user.balance < amount) {
+                    this.showNotification('❌ Недостаточно TON! Пополните баланс');
+                    return;
+                }
+
+                // Обновляем данные
+                this.gameData = this.db.updateGameStats(amount, this.user.id);
+                this.user = this.db.getCurrentUser();
+
+                // Обновляем UI
+                this.updateUI();
+
+                // Показываем уведомление
+                this.showNotification('✅ Подарок отправлен! +2 TON к призу');
+
+                // Вибрация
+                if (this.tg) {
+                    this.tg.HapticFeedback.notificationOccurred('success');
+                }
+            }
+
+            showNotification(message) {
+                const notif = document.getElementById('notification');
+                notif.style.display = 'block';
+                notif.textContent = message;
+                
+                setTimeout(() => {
+                    notif.style.display = 'none';
+                }, 3000);
+            }
+
+            showDeposit() {
+                const message = '💰 Пополнение TON\n\n' +
+                               'Адрес для пополнения:\n' +
+                               'EQD...' + Math.random().toString(36).substr(2, 8).toUpperCase() + '\n\n' +
+                               'Минимальная сумма: 10 TON\n' +
+                               'Баланс обновится автоматически';
+                
+                if (this.tg) {
+                    this.tg.showAlert(message);
+                } else {
+                    alert(message);
+                }
+            }
+
+            showRules() {
+                const rules = '👑 ПРАВИЛА ИГРЫ\n\n' +
+                             '• Каждые 200 часов определяется король\n' +
+                             '• Король = игрок с наибольшей суммой отправленных подарков\n' +
+                             '• Король забирает ВЕСЬ банк\n' +
+                             '• Топ-3 получают бонусы\n' +
+                             '• 10% от каждой отправки идут в роялти\n\n' +
+                             'Честная игра на TON!';
+
+                if (this.tg) {
+                    this.tg.showAlert(rules);
+                } else {
+                    alert(rules);
+                }
+            }
+
+            showMenu() {
+                const menu = '📱 МЕНЮ\n\n' +
+                            '👤 Профиль\n' +
+                            '💰 Пополнить\n' +
+                            '🎁 Мои подарки\n' +
+                            '👥 Рефералы\n' +
+                            '📊 Статистика\n' +
+                            '⚙️ Настройки';
+
+                if (this.tg) {
+                    this.tg.showAlert(menu);
+                } else {
+                    alert(menu);
+                }
+            }
+
+            closeApp() {
+                if (this.tg) {
+                    this.tg.close();
+                }
             }
         }
 
-        // Закрыть приложение
-        function closeApp() {
-            if (tg) {
-                tg.close();
-            }
-        }
+        // ===============================================
+        // ЗАПУСК ПРИЛОЖЕНИЯ
+        // ===============================================
 
-        // Инициализация
-        updateUI();
+        const app = new WinTonApp();
+
+        // Глобальные функции для onclick
+        function sendGift() { app.sendGift(); }
+        function showDeposit() { app.showDeposit(); }
+        function showRules() { app.showRules(); }
+        function showMenu() { app.showMenu(); }
+        function closeApp() { app.closeApp(); }
     </script>
 </body>
 </html>
