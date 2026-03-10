@@ -14,7 +14,6 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
 
         :root {
@@ -36,8 +35,6 @@
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            margin: 0;
-            padding: 0;
         }
 
         .app-container {
@@ -60,8 +57,6 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            position: relative;
-            z-index: 10;
         }
 
         .close-btn {
@@ -74,7 +69,6 @@
             background: rgba(0,0,0,0.2);
             border-radius: 30px;
             cursor: pointer;
-            pointer-events: auto;
         }
 
         .title-section {
@@ -104,7 +98,6 @@
             gap: 4px;
             cursor: pointer;
             background: rgba(0,0,0,0.2);
-            pointer-events: auto;
         }
 
         .menu-dot {
@@ -118,8 +111,6 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
-            position: relative;
-            z-index: 10;
         }
 
         .balance-card {
@@ -175,7 +166,6 @@
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            pointer-events: auto;
         }
 
         .timer-container {
@@ -202,7 +192,6 @@
             margin: 0 16px 20px 16px;
             border-radius: 20px;
             cursor: pointer;
-            pointer-events: auto;
         }
 
         .banner-title {
@@ -431,8 +420,6 @@
             display: flex;
             gap: 10px;
             margin: 20px 16px;
-            position: relative;
-            z-index: 20;
         }
 
         .action-button {
@@ -449,7 +436,6 @@
             justify-content: center;
             gap: 8px;
             cursor: pointer;
-            pointer-events: auto;
         }
 
         .action-button.secondary {
@@ -512,7 +498,6 @@
             font-size: 16px;
             cursor: pointer;
             margin-bottom: 10px;
-            pointer-events: auto;
         }
 
         .modal-button.secondary {
@@ -599,7 +584,7 @@
                 <div class="stat-item">
                     <div class="stat-icon"><i class="fas fa-users"></i></div>
                     <div class="stat-label">игроков</div>
-                    <div class="stat-value" id="totalPlayers">1</div>
+                    <div class="stat-value" id="totalPlayers">0</div>
                 </div>
             </div>
 
@@ -609,12 +594,12 @@
             </div>
 
             <div class="user-card">
-                <div class="user-rank" id="userRank">#1</div>
+                <div class="user-rank" id="userRank">#0</div>
                 <div class="user-avatar" id="userAvatar">
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="user-info">
-                    <div class="user-name" id="userName">Игрок</div>
+                    <div class="user-name" id="userName">Загрузка...</div>
                     <div class="user-stats" id="userStats">ставок: 0.00 TON</div>
                 </div>
                 <div class="user-prize" id="userPrize">0 TON</div>
@@ -690,41 +675,49 @@
         }
 
         // ===============================================
-        // ПРОСТОЕ ХРАНИЛИЩЕ (localStorage)
+        // ХРАНИЛИЩЕ ДАННЫХ
         // ===============================================
 
-        // Данные игроков
         let players = [];
         let bets = [];
         let currentUser = null;
-        
-        // Загружаем данные
+
+        // Загрузить данные
         function loadData() {
             try {
-                const saved = localStorage.getItem('players');
-                if (saved) players = JSON.parse(saved);
+                const savedPlayers = localStorage.getItem('win_players');
+                if (savedPlayers) {
+                    players = JSON.parse(savedPlayers);
+                } else {
+                    players = [];
+                }
                 
-                const savedBets = localStorage.getItem('bets');
-                if (savedBets) bets = JSON.parse(savedBets);
+                const savedBets = localStorage.getItem('win_bets');
+                if (savedBets) {
+                    bets = JSON.parse(savedBets);
+                } else {
+                    bets = [];
+                }
                 
-                console.log('Загружено игроков:', players.length);
-                console.log('Загружено ставок:', bets.length);
+                console.log('Загружено:', players.length, 'игроков,', bets.length, 'ставок');
             } catch (e) {
-                console.log('Ошибка загрузки');
+                console.error('Ошибка загрузки:', e);
+                players = [];
+                bets = [];
             }
         }
-        
-        // Сохраняем данные
+
+        // Сохранить данные
         function saveData() {
-            localStorage.setItem('players', JSON.stringify(players));
-            localStorage.setItem('bets', JSON.stringify(bets));
+            localStorage.setItem('win_players', JSON.stringify(players));
+            localStorage.setItem('win_bets', JSON.stringify(bets));
         }
-        
-        // Получаем текущего пользователя
+
+        // Получить текущего пользователя
         function getCurrentUser() {
             if (currentUser) return currentUser;
             
-            // Пробуем получить из Telegram
+            // Из Telegram
             if (tg?.initDataUnsafe?.user) {
                 const tu = tg.initDataUnsafe.user;
                 const userId = tu.id.toString();
@@ -737,8 +730,7 @@
                         name: tu.first_name + (tu.last_name ? ' ' + tu.last_name : ''),
                         avatar: tu.photo_url || null,
                         balance: 100,
-                        totalSent: 0,
-                        bets: []
+                        totalSent: 0
                     };
                     players.push(user);
                     saveData();
@@ -748,28 +740,10 @@
                 return user;
             }
             
-            // Тестовый пользователь
-            if (!currentUser) {
-                if (players.length > 0) {
-                    currentUser = players[0];
-                } else {
-                    currentUser = {
-                        id: 'test_' + Date.now(),
-                        name: 'Тестовый игрок',
-                        avatar: null,
-                        balance: 100,
-                        totalSent: 0,
-                        bets: []
-                    };
-                    players.push(currentUser);
-                    saveData();
-                }
-            }
-            
-            return currentUser;
+            return null;
         }
-        
-        // Обновляем пользователя
+
+        // Обновить пользователя
         function updateUser(updates) {
             if (!currentUser) return;
             
@@ -783,19 +757,33 @@
             
             updateUI();
         }
-        
-        // Добавляем ставку
-        function addBet(amount) {
-            if (!currentUser) return false;
-            if (currentUser.balance < amount) return false;
+
+        // Сделать ставку
+        function makeBet() {
+            const amount = parseFloat(document.getElementById('betAmount').value);
+            
+            if (!currentUser) {
+                showNotification('❌ Ошибка: не удалось загрузить профиль');
+                return;
+            }
+            
+            if (amount < 0.01) {
+                showNotification('❌ Минимальная ставка 0.01 TON');
+                return;
+            }
+            
+            if (amount > currentUser.balance) {
+                showNotification('❌ Недостаточно средств');
+                return;
+            }
             
             // Списываем
             currentUser.balance -= amount;
-            currentUser.totalSent += amount;
+            currentUser.totalSent = (currentUser.totalSent || 0) + amount;
             
             // Сохраняем ставку
             const bet = {
-                id: Date.now(),
+                id: Date.now() + Math.random(),
                 userId: currentUser.id,
                 userName: currentUser.name,
                 userAvatar: currentUser.avatar,
@@ -805,79 +793,52 @@
             
             bets.push(bet);
             
-            // Обновляем
+            // Обновляем пользователя
             updateUser({
                 balance: currentUser.balance,
                 totalSent: currentUser.totalSent
             });
             
             saveData();
-            updateTopList();
+            closeModal('betModal');
+            showNotification(`✅ Ставка ${amount.toFixed(2)} TON принята`);
             
-            return true;
+            // Обновляем топ
+            updateTopList();
         }
-        
-        // Получаем топ-50
+
+        // Получить топ-50
         function getTopPlayers() {
-            // Группируем ставки по пользователям
+            // Собираем статистику по всем игрокам
             const stats = {};
             
-            bets.forEach(bet => {
-                if (!stats[bet.userId]) {
-                    stats[bet.userId] = {
-                        id: bet.userId,
-                        name: bet.userName,
-                        avatar: bet.userAvatar,
-                        total: 0,
-                        count: 0
-                    };
-                }
-                stats[bet.userId].total += bet.amount;
-                stats[bet.userId].count++;
+            // Добавляем всех игроков
+            players.forEach(player => {
+                stats[player.id] = {
+                    id: player.id,
+                    name: player.name,
+                    avatar: player.avatar,
+                    total: 0,
+                    count: 0
+                };
             });
             
-            // Преобразуем в массив и сортируем
-            const top = Object.values(stats)
+            // Суммируем ставки
+            bets.forEach(bet => {
+                if (stats[bet.userId]) {
+                    stats[bet.userId].total += bet.amount;
+                    stats[bet.userId].count++;
+                }
+            });
+            
+            // Фильтруем и сортируем
+            return Object.values(stats)
+                .filter(p => p.total > 0)
                 .sort((a, b) => b.total - a.total)
                 .slice(0, 50);
-            
-            console.log('Топ игроков:', top.length);
-            return top;
         }
-        
-        // ===============================================
-        // UI
-        // ===============================================
-        
-        function updateUI() {
-            const user = getCurrentUser();
-            if (!user) return;
-            
-            document.getElementById('balanceDisplay').innerHTML = user.balance.toFixed(2) + ' TON';
-            document.getElementById('userName').innerHTML = user.name;
-            document.getElementById('userStats').innerHTML = 'ставок: ' + (user.totalSent || 0).toFixed(2) + ' TON';
-            
-            // Аватар
-            const avatar = document.getElementById('userAvatar');
-            if (user.avatar) {
-                avatar.innerHTML = `<img src="${user.avatar}">`;
-            } else {
-                avatar.innerHTML = '<i class="fas fa-user"></i>';
-            }
-            
-            // Статистика
-            const total = bets.reduce((s, b) => s + b.amount, 0);
-            document.getElementById('totalSent').innerHTML = total.toFixed(2) + ' TON';
-            document.getElementById('totalRoyalty').innerHTML = (total * 0.1).toFixed(2) + ' TON';
-            document.getElementById('totalPlayers').innerHTML = players.length;
-            
-            // Ранг
-            const top = getTopPlayers();
-            const rank = top.findIndex(p => p.id === user.id) + 1;
-            document.getElementById('userRank').innerHTML = rank > 0 ? '#' + rank : '#0';
-            document.getElementById('userPrize').innerHTML = Math.floor((user.totalSent || 0) * 1.5) + ' TON';
-        }
-        
+
+        // Обновить топ
         function updateTopList() {
             const top = getTopPlayers();
             const list = document.getElementById('topList');
@@ -902,7 +863,7 @@
                         <div class="top-avatar">${avatar}</div>
                         <div class="top-info">
                             <div class="top-name">${p.name} ${isMe ? '(вы)' : ''}</div>
-                            <div class="top-stats">${p.count || 0} ставок</div>
+                            <div class="top-stats">${p.count} ставок</div>
                         </div>
                         <div class="top-amount">
                             <span class="ton-badge">TON</span>
@@ -912,16 +873,44 @@
                 `;
             }).join('');
         }
-        
+
+        // Обновить интерфейс
+        function updateUI() {
+            if (!currentUser) return;
+            
+            document.getElementById('balanceDisplay').innerHTML = currentUser.balance.toFixed(2) + ' TON';
+            document.getElementById('userName').innerHTML = currentUser.name;
+            document.getElementById('userStats').innerHTML = 'ставок: ' + (currentUser.totalSent || 0).toFixed(2) + ' TON';
+            
+            const avatar = document.getElementById('userAvatar');
+            if (currentUser.avatar) {
+                avatar.innerHTML = `<img src="${currentUser.avatar}">`;
+            } else {
+                avatar.innerHTML = '<i class="fas fa-user"></i>';
+            }
+            
+            // Общая статистика
+            const totalSent = bets.reduce((s, b) => s + b.amount, 0);
+            document.getElementById('totalSent').innerHTML = totalSent.toFixed(2) + ' TON';
+            document.getElementById('totalRoyalty').innerHTML = (totalSent * 0.1).toFixed(2) + ' TON';
+            document.getElementById('totalPlayers').innerHTML = players.length;
+            
+            // Позиция пользователя
+            const top = getTopPlayers();
+            const rank = top.findIndex(p => p.id === currentUser.id) + 1;
+            document.getElementById('userRank').innerHTML = rank > 0 ? '#' + rank : '#0';
+            document.getElementById('userPrize').innerHTML = Math.floor((currentUser.totalSent || 0) * 1.5) + ' TON';
+        }
+
         // Таймер
-        let timerEnd = localStorage.getItem('timerEnd');
+        let timerEnd = localStorage.getItem('win_timer');
         if (!timerEnd) {
             timerEnd = Date.now() + 200 * 60 * 60 * 1000;
-            localStorage.setItem('timerEnd', timerEnd);
+            localStorage.setItem('win_timer', timerEnd);
         } else {
             timerEnd = parseInt(timerEnd);
         }
-        
+
         setInterval(() => {
             const diff = timerEnd - Date.now();
             
@@ -931,25 +920,25 @@
                     showNotification(`👑 ${top[0].name} стал королем!`);
                 }
                 timerEnd = Date.now() + 200 * 60 * 60 * 1000;
-                localStorage.setItem('timerEnd', timerEnd);
+                localStorage.setItem('win_timer', timerEnd);
             }
             
-            const hours = Math.floor(diff / (60 * 60 * 1000));
-            const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-            const seconds = Math.floor((diff % (60 * 1000)) / 1000);
+            const hours = Math.floor(Math.max(0, diff) / (60 * 60 * 1000));
+            const minutes = Math.floor((Math.max(0, diff) % (60 * 60 * 1000)) / (60 * 1000));
+            const seconds = Math.floor((Math.max(0, diff) % (60 * 1000)) / 1000);
             
             document.getElementById('timerDisplay').innerHTML = 
                 `${hours.toString().padStart(3, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }, 1000);
-        
+
         // ===============================================
-        // ФУНКЦИИ КНОПОК
+        // ФУНКЦИИ
         // ===============================================
-        
+
         function showDeposit() {
             document.getElementById('depositModal').style.display = 'flex';
         }
-        
+
         function processDeposit() {
             const amount = parseFloat(document.getElementById('depositAmount').value);
             
@@ -963,64 +952,49 @@
             
             closeModal('depositModal');
             showNotification('⏳ Ожидаем оплату...');
-            
-            // Для теста (потом убрать!)
-            setTimeout(() => {
-                currentUser.balance += amount;
-                updateUser({ balance: currentUser.balance });
-                showNotification(`✅ Получено ${amount.toFixed(2)} TON (ТЕСТ)`);
-            }, 5000);
         }
-        
+
         function showBetModal() {
             document.getElementById('betModal').style.display = 'flex';
         }
-        
-        function makeBet() {
-            const amount = parseFloat(document.getElementById('betAmount').value);
-            
-            if (amount < 0.01) {
-                showNotification('❌ Минимум 0.01 TON');
-                return;
-            }
-            
-            if (addBet(amount)) {
-                closeModal('betModal');
-                showNotification(`✅ Ставка ${amount.toFixed(2)} TON`);
-            } else {
-                showNotification('❌ Недостаточно средств');
-            }
-        }
-        
+
         function showNotification(text) {
             const n = document.getElementById('notification');
             n.style.display = 'block';
             n.innerHTML = text;
             setTimeout(() => n.style.display = 'none', 3000);
         }
-        
+
         function closeModal(id) {
             document.getElementById(id).style.display = 'none';
         }
-        
+
         function showMenu() {
-            const user = getCurrentUser();
-            showNotification(`👤 ${user.name}\n💰 ${user.balance.toFixed(2)} TON`);
+            if (!currentUser) return;
+            showNotification(`👤 ${currentUser.name}\n💰 ${currentUser.balance.toFixed(2)} TON`);
         }
-        
+
         function showRules() {
             showNotification('👑 Каждые 200ч новый король забирает всё');
         }
-        
+
         function closeApp() {
             if (tg) tg.close();
         }
-        
-        // Запуск
+
+        // ===============================================
+        // ЗАПУСК
+        // ===============================================
+
         loadData();
         getCurrentUser();
         updateUI();
         updateTopList();
+        
+        // Обновляем топ каждые 5 секунд
+        setInterval(() => {
+            updateTopList();
+        }, 5000);
     </script>
 </body>
 </html>
