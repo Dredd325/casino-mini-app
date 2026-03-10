@@ -9,13 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- SQL.js для работы с SQLite -->
-    <script src="https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/sql-wasm.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         :root {
@@ -37,6 +36,8 @@
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
+            margin: 0;
+            padding: 0;
         }
 
         .app-container {
@@ -59,6 +60,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
         }
 
         .close-btn {
@@ -71,6 +74,7 @@
             background: rgba(0,0,0,0.2);
             border-radius: 30px;
             cursor: pointer;
+            pointer-events: auto;
         }
 
         .title-section {
@@ -100,6 +104,7 @@
             gap: 4px;
             cursor: pointer;
             background: rgba(0,0,0,0.2);
+            pointer-events: auto;
         }
 
         .menu-dot {
@@ -113,6 +118,8 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            position: relative;
+            z-index: 10;
         }
 
         .balance-card {
@@ -168,6 +175,7 @@
             align-items: center;
             gap: 8px;
             cursor: pointer;
+            pointer-events: auto;
         }
 
         .timer-container {
@@ -194,6 +202,7 @@
             margin: 0 16px 20px 16px;
             border-radius: 20px;
             cursor: pointer;
+            pointer-events: auto;
         }
 
         .banner-title {
@@ -422,6 +431,8 @@
             display: flex;
             gap: 10px;
             margin: 20px 16px;
+            position: relative;
+            z-index: 20;
         }
 
         .action-button {
@@ -438,6 +449,7 @@
             justify-content: center;
             gap: 8px;
             cursor: pointer;
+            pointer-events: auto;
         }
 
         .action-button.secondary {
@@ -500,6 +512,7 @@
             font-size: 16px;
             cursor: pointer;
             margin-bottom: 10px;
+            pointer-events: auto;
         }
 
         .modal-button.secondary {
@@ -522,26 +535,20 @@
             text-align: center;
             box-shadow: 0 5px 20px rgba(0,0,0,0.5);
         }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
     </style>
 </head>
 <body>
     <div class="app-container">
         <div class="header">
             <div class="header-top">
-                <div class="close-btn" onclick="window.app?.closeApp()">
+                <div class="close-btn" onclick="closeApp()">
                     <i class="fas fa-chevron-left"></i> Закрыть
                 </div>
                 <div class="title-section">
                     <div class="main-title">WinTon</div>
                     <div class="sub-title">царь горы</div>
                 </div>
-                <div class="menu-btn" onclick="window.app?.showMenu()">
+                <div class="menu-btn" onclick="showMenu()">
                     <div class="menu-dot"></div>
                     <div class="menu-dot"></div>
                     <div class="menu-dot"></div>
@@ -555,10 +562,10 @@
                     </div>
                     <div class="balance-info">
                         <div class="balance-label">Баланс</div>
-                        <div class="balance-amount" id="balanceDisplay">0.00 TON</div>
+                        <div class="balance-amount" id="balanceDisplay">100.00 TON</div>
                     </div>
                 </div>
-                <button class="deposit-btn" onclick="window.app?.showDeposit()">
+                <button class="deposit-btn" onclick="showDeposit()">
                     <i class="fas fa-plus-circle"></i>
                     <span>Пополнить</span>
                 </button>
@@ -570,7 +577,7 @@
             </div>
         </div>
 
-        <div class="banner" onclick="window.app?.showRules()">
+        <div class="banner" onclick="showRules()">
             <div class="banner-title">👑 Царь горы заберет больше всех</div>
             <div class="banner-link">
                 Узнать правила <i class="fas fa-arrow-right"></i>
@@ -592,7 +599,7 @@
                 <div class="stat-item">
                     <div class="stat-icon"><i class="fas fa-users"></i></div>
                     <div class="stat-label">игроков</div>
-                    <div class="stat-value" id="totalPlayers">0</div>
+                    <div class="stat-value" id="totalPlayers">1</div>
                 </div>
             </div>
 
@@ -602,12 +609,12 @@
             </div>
 
             <div class="user-card">
-                <div class="user-rank" id="userRank">#0</div>
+                <div class="user-rank" id="userRank">#1</div>
                 <div class="user-avatar" id="userAvatar">
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="user-info">
-                    <div class="user-name" id="userName">Загрузка...</div>
+                    <div class="user-name" id="userName">Игрок</div>
                     <div class="user-stats" id="userStats">ставок: 0.00 TON</div>
                 </div>
                 <div class="user-prize" id="userPrize">0 TON</div>
@@ -618,17 +625,15 @@
                     <span><i class="fas fa-trophy"></i> ТОП-50 ПО СТАВКАМ</span>
                     <span>СУММА</span>
                 </div>
-                <div id="topList" class="top-list">
-                    <div class="loading">Загрузка игроков...</div>
-                </div>
+                <div id="topList" class="top-list"></div>
             </div>
         </div>
 
         <div class="action-buttons">
-            <button class="action-button" onclick="window.app?.showDeposit()">
+            <button class="action-button" onclick="showDeposit()">
                 <i class="fas fa-plus-circle"></i> Пополнить
             </button>
-            <button class="action-button secondary" onclick="window.app?.showBetModal()">
+            <button class="action-button secondary" onclick="showBetModal()">
                 <i class="fas fa-paper-plane"></i> Ставка
             </button>
         </div>
@@ -642,15 +647,15 @@
             
             <div style="background: #1a1a1a; padding: 12px; border-radius: 12px; margin-bottom: 15px; word-break: break-all; font-size: 12px;">
                 <div style="color: #666; margin-bottom: 5px;">Адрес для оплаты:</div>
-                <div style="color: var(--ton-blue); font-family: monospace; font-size: 11px;">UQDLH22g4oiwhpdPyljcYS6kTQQLmnFs6gNZfjizzbx9Dkpo</div>
+                <div style="color: var(--ton-blue); font-size: 11px;">UQDLH22g4oiwhpdPyljcYS6kTQQLmnFs6gNZfjizzbx9Dkpo</div>
             </div>
 
             <input type="number" id="depositAmount" class="modal-input" value="1" min="0.01" step="0.01" placeholder="Сумма в TON (мин 0.01)">
 
-            <button class="modal-button" onclick="window.app?.processDeposit()">
+            <button class="modal-button" onclick="processDeposit()">
                 <i class="fas fa-qrcode"></i> Оплатить
             </button>
-            <button class="modal-button secondary" onclick="window.app?.closeModal('depositModal')">
+            <button class="modal-button secondary" onclick="closeModal('depositModal')">
                 Закрыть
             </button>
         </div>
@@ -664,10 +669,10 @@
 
             <input type="number" id="betAmount" class="modal-input" value="1" min="0.01" step="0.01" placeholder="Сумма ставки (мин 0.01 TON)">
 
-            <button class="modal-button" onclick="window.app?.makeBet()">
+            <button class="modal-button" onclick="makeBet()">
                 <i class="fas fa-check"></i> Подтвердить ставку
             </button>
-            <button class="modal-button secondary" onclick="window.app?.closeModal('betModal')">
+            <button class="modal-button secondary" onclick="closeModal('betModal')">
                 Отмена
             </button>
         </div>
@@ -676,625 +681,346 @@
     <div id="notification" class="notification" style="display: none;"></div>
 
     <script>
+        // Telegram Mini App
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => tg.close());
+        }
+
         // ===============================================
-        // SQL БАЗА ДАННЫХ
+        // ПРОСТОЕ ХРАНИЛИЩЕ (localStorage)
         // ===============================================
 
-        class SQLiteDB {
-            constructor() {
-                this.db = null;
-                this.ready = false;
-                this.init();
-            }
-
-            async init() {
-                try {
-                    // SQL код из отдельного файла (вставь сюда содержимое database.sql)
-                    const SQL = await initSqlJs({
-                        locateFile: file => `https://sql.js.org/dist/${file}`
-                    });
-                    
-                    // Пытаемся загрузить сохраненную базу
-                    const saved = localStorage.getItem('sqlite_db');
-                    
-                    if (saved) {
-                        // Загружаем существующую базу
-                        const arr = this.base64ToArrayBuffer(saved);
-                        this.db = new SQL.Database(new Uint8Array(arr));
-                        console.log('База данных загружена');
-                    } else {
-                        // Создаем новую базу
-                        this.db = new SQL.Database();
-                        await this.createTables();
-                        console.log('Новая база создана');
-                    }
-                    
-                    this.ready = true;
-                    
-                    // Проверяем что топ работает
-                    this.checkTop();
-                    
-                } catch (error) {
-                    console.error('SQL Error:', error);
-                }
-            }
-
-            base64ToArrayBuffer(base64) {
-                const binaryString = atob(base64);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                return bytes.buffer;
-            }
-
-            arrayBufferToBase64(buffer) {
-                let binary = '';
-                const bytes = new Uint8Array(buffer);
-                for (let i = 0; i < bytes.byteLength; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                return btoa(binary);
-            }
-
-            save() {
-                if (!this.db) return;
-                const data = this.db.export();
-                const base64 = this.arrayBufferToBase64(data);
-                localStorage.setItem('sqlite_db', base64);
-            }
-
-            async createTables() {
-                // SQL из database.sql
-                const sql = `
-                    -- ТАБЛИЦА ПОЛЬЗОВАТЕЛЕЙ
-                    CREATE TABLE IF NOT EXISTS users (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        telegram_id TEXT UNIQUE,
-                        first_name TEXT NOT NULL,
-                        last_name TEXT,
-                        avatar TEXT,
-                        balance REAL DEFAULT 100.0,
-                        total_sent REAL DEFAULT 0.0,
-                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        last_active DATETIME DEFAULT CURRENT_TIMESTAMP
-                    );
-
-                    -- ТАБЛИЦА СТАВОК
-                    CREATE TABLE IF NOT EXISTS bets (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        user_id INTEGER NOT NULL,
-                        amount REAL NOT NULL,
-                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (user_id) REFERENCES users(id)
-                    );
-
-                    -- ТАБЛИЦА ТРАНЗАКЦИЙ
-                    CREATE TABLE IF NOT EXISTS transactions (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        user_id INTEGER NOT NULL,
-                        amount REAL NOT NULL,
-                        tx_hash TEXT UNIQUE,
-                        status TEXT DEFAULT 'pending',
-                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (user_id) REFERENCES users(id)
-                    );
-
-                    -- ТАБЛИЦА НАСТРОЕК
-                    CREATE TABLE IF NOT EXISTS game_settings (
-                        key TEXT PRIMARY KEY,
-                        value TEXT NOT NULL
-                    );
-
-                    -- ИНДЕКСЫ
-                    CREATE INDEX IF NOT EXISTS idx_users_telegram ON users(telegram_id);
-                    CREATE INDEX IF NOT EXISTS idx_bets_user ON bets(user_id);
-
-                    -- НАЧАЛЬНЫЕ НАСТРОЙКИ
-                    INSERT OR IGNORE INTO game_settings (key, value) VALUES 
-                        ('king_end_time', strftime('%s', 'now', '+200 hours')),
-                        ('total_pool', '0'),
-                        ('total_royalty', '0');
-                `;
+        // Данные игроков
+        let players = [];
+        let bets = [];
+        let currentUser = null;
+        
+        // Загружаем данные
+        function loadData() {
+            try {
+                const saved = localStorage.getItem('players');
+                if (saved) players = JSON.parse(saved);
                 
-                this.db.exec(sql);
-                this.save();
+                const savedBets = localStorage.getItem('bets');
+                if (savedBets) bets = JSON.parse(savedBets);
+                
+                console.log('Загружено игроков:', players.length);
+                console.log('Загружено ставок:', bets.length);
+            } catch (e) {
+                console.log('Ошибка загрузки');
             }
-
-            checkTop() {
-                // Проверяем что топ работает
-                try {
-                    const result = this.db.exec(`
-                        SELECT 
-                            u.id,
-                            u.first_name,
-                            u.last_name,
-                            u.avatar,
-                            COUNT(b.id) as bets_count,
-                            IFNULL(SUM(b.amount), 0) as total_amount
-                        FROM users u
-                        LEFT JOIN bets b ON u.id = b.user_id
-                        GROUP BY u.id
-                        HAVING total_amount > 0
-                        ORDER BY total_amount DESC
-                        LIMIT 50
-                    `);
-                    
-                    console.log('Топ запрос работает, найдено:', result.length ? result[0].values.length : 0);
-                } catch (e) {
-                    console.error('Топ ошибка:', e);
-                }
-            }
-
-            // ===== ПОЛЬЗОВАТЕЛИ =====
+        }
+        
+        // Сохраняем данные
+        function saveData() {
+            localStorage.setItem('players', JSON.stringify(players));
+            localStorage.setItem('bets', JSON.stringify(bets));
+        }
+        
+        // Получаем текущего пользователя
+        function getCurrentUser() {
+            if (currentUser) return currentUser;
             
-            getUserByTelegram(telegramId) {
-                const result = this.db.exec(
-                    'SELECT * FROM users WHERE telegram_id = ?',
-                    [telegramId]
-                );
+            // Пробуем получить из Telegram
+            if (tg?.initDataUnsafe?.user) {
+                const tu = tg.initDataUnsafe.user;
+                const userId = tu.id.toString();
                 
-                if (result.length && result[0].values.length) {
-                    const cols = result[0].columns;
-                    const vals = result[0].values[0];
-                    return this.rowToObject(cols, vals);
+                let user = players.find(p => p.id === userId);
+                
+                if (!user) {
+                    user = {
+                        id: userId,
+                        name: tu.first_name + (tu.last_name ? ' ' + tu.last_name : ''),
+                        avatar: tu.photo_url || null,
+                        balance: 100,
+                        totalSent: 0,
+                        bets: []
+                    };
+                    players.push(user);
+                    saveData();
                 }
-                return null;
+                
+                currentUser = user;
+                return user;
             }
-
-            createUser(data) {
-                this.db.run(
-                    'INSERT INTO users (telegram_id, first_name, last_name, avatar) VALUES (?, ?, ?, ?)',
-                    [data.telegramId, data.firstName, data.lastName || '', data.avatar || '']
-                );
-                this.save();
-                
-                const result = this.db.exec('SELECT last_insert_rowid() as id');
-                const id = result[0].values[0][0];
-                
-                return this.getUserById(id);
-            }
-
-            getUserById(id) {
-                const result = this.db.exec('SELECT * FROM users WHERE id = ?', [id]);
-                if (result.length && result[0].values.length) {
-                    const cols = result[0].columns;
-                    const vals = result[0].values[0];
-                    return this.rowToObject(cols, vals);
-                }
-                return null;
-            }
-
-            updateUser(id, updates) {
-                const sets = [];
-                const params = [];
-                
-                Object.entries(updates).forEach(([key, value]) => {
-                    sets.push(`${key} = ?`);
-                    params.push(value);
-                });
-                
-                params.push(id);
-                
-                this.db.run(
-                    `UPDATE users SET ${sets.join(', ')}, last_active = CURRENT_TIMESTAMP WHERE id = ?`,
-                    params
-                );
-                this.save();
-                
-                return this.getUserById(id);
-            }
-
-            getAllUsers() {
-                const result = this.db.exec('SELECT * FROM users ORDER BY id');
-                return this.resultToArray(result);
-            }
-
-            // ===== СТАВКИ =====
-
-            addBet(userId, amount) {
-                this.db.run(
-                    'INSERT INTO bets (user_id, amount) VALUES (?, ?)',
-                    [userId, amount]
-                );
-                
-                // Обновляем total_sent у пользователя
-                this.db.run(
-                    'UPDATE users SET total_sent = total_sent + ?, balance = balance - ? WHERE id = ?',
-                    [amount, amount, userId]
-                );
-                
-                // Обновляем total_pool
-                this.db.run(
-                    'UPDATE game_settings SET value = value + ? WHERE key = "total_pool"',
-                    [amount]
-                );
-                
-                // Обновляем royalty
-                this.db.run(
-                    'UPDATE game_settings SET value = value + ? WHERE key = "total_royalty"',
-                    [amount * 0.1]
-                );
-                
-                this.save();
-            }
-
-            getUserBets(userId) {
-                const result = this.db.exec(
-                    'SELECT * FROM bets WHERE user_id = ? ORDER BY created_at DESC',
-                    [userId]
-                );
-                return this.resultToArray(result);
-            }
-
-            getAllBets() {
-                const result = this.db.exec('SELECT * FROM bets ORDER BY created_at');
-                return this.resultToArray(result);
-            }
-
-            // ===== ТОП-50 =====
-
-            getTopPlayers() {
-                try {
-                    const result = this.db.exec(`
-                        SELECT 
-                            u.id,
-                            u.first_name,
-                            u.last_name,
-                            u.avatar,
-                            COUNT(b.id) as bets_count,
-                            IFNULL(SUM(b.amount), 0) as total_amount
-                        FROM users u
-                        LEFT JOIN bets b ON u.id = b.user_id
-                        GROUP BY u.id
-                        HAVING total_amount > 0
-                        ORDER BY total_amount DESC
-                        LIMIT 50
-                    `);
-                    
-                    return this.resultToArray(result);
-                } catch (e) {
-                    console.error('Top error:', e);
-                    return [];
+            
+            // Тестовый пользователь
+            if (!currentUser) {
+                if (players.length > 0) {
+                    currentUser = players[0];
+                } else {
+                    currentUser = {
+                        id: 'test_' + Date.now(),
+                        name: 'Тестовый игрок',
+                        avatar: null,
+                        balance: 100,
+                        totalSent: 0,
+                        bets: []
+                    };
+                    players.push(currentUser);
+                    saveData();
                 }
             }
-
-            // ===== ТРАНЗАКЦИИ =====
-
-            addTransaction(userId, amount, txHash) {
-                this.db.run(
-                    'INSERT INTO transactions (user_id, amount, tx_hash, status) VALUES (?, ?, ?, ?)',
-                    [userId, amount, txHash, 'pending']
-                );
-                this.save();
-            }
-
-            confirmTransaction(txHash) {
-                this.db.run(
-                    'UPDATE transactions SET status = "confirmed" WHERE tx_hash = ?',
-                    [txHash]
-                );
-                this.save();
-            }
-
-            // ===== НАСТРОЙКИ =====
-
-            getGameSetting(key) {
-                const result = this.db.exec('SELECT value FROM game_settings WHERE key = ?', [key]);
-                if (result.length && result[0].values.length) {
-                    return result[0].values[0][0];
-                }
-                return null;
-            }
-
-            setGameSetting(key, value) {
-                this.db.run(
-                    'INSERT OR REPLACE INTO game_settings (key, value) VALUES (?, ?)',
-                    [key, value.toString()]
-                );
-                this.save();
-            }
-
-            // ===== УТИЛИТЫ =====
-
-            rowToObject(cols, vals) {
-                const obj = {};
-                cols.forEach((col, i) => {
-                    obj[col] = vals[i];
-                });
-                return obj;
-            }
-
-            resultToArray(result) {
-                if (!result.length) return [];
-                
-                const cols = result[0].columns;
-                return result[0].values.map(vals => this.rowToObject(cols, vals));
-            }
+            
+            return currentUser;
         }
-
+        
+        // Обновляем пользователя
+        function updateUser(updates) {
+            if (!currentUser) return;
+            
+            Object.assign(currentUser, updates);
+            
+            const index = players.findIndex(p => p.id === currentUser.id);
+            if (index !== -1) {
+                players[index] = currentUser;
+                saveData();
+            }
+            
+            updateUI();
+        }
+        
+        // Добавляем ставку
+        function addBet(amount) {
+            if (!currentUser) return false;
+            if (currentUser.balance < amount) return false;
+            
+            // Списываем
+            currentUser.balance -= amount;
+            currentUser.totalSent += amount;
+            
+            // Сохраняем ставку
+            const bet = {
+                id: Date.now(),
+                userId: currentUser.id,
+                userName: currentUser.name,
+                userAvatar: currentUser.avatar,
+                amount: amount,
+                time: Date.now()
+            };
+            
+            bets.push(bet);
+            
+            // Обновляем
+            updateUser({
+                balance: currentUser.balance,
+                totalSent: currentUser.totalSent
+            });
+            
+            saveData();
+            updateTopList();
+            
+            return true;
+        }
+        
+        // Получаем топ-50
+        function getTopPlayers() {
+            // Группируем ставки по пользователям
+            const stats = {};
+            
+            bets.forEach(bet => {
+                if (!stats[bet.userId]) {
+                    stats[bet.userId] = {
+                        id: bet.userId,
+                        name: bet.userName,
+                        avatar: bet.userAvatar,
+                        total: 0,
+                        count: 0
+                    };
+                }
+                stats[bet.userId].total += bet.amount;
+                stats[bet.userId].count++;
+            });
+            
+            // Преобразуем в массив и сортируем
+            const top = Object.values(stats)
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 50);
+            
+            console.log('Топ игроков:', top.length);
+            return top;
+        }
+        
         // ===============================================
-        // ОСНОВНОЙ КЛАСС
+        // UI
         // ===============================================
-
-        class WinTonApp {
-            constructor() {
-                this.db = new SQLiteDB();
-                this.tg = window.Telegram?.WebApp;
-                this.user = null;
-                
-                // Ждем инициализацию БД
-                this.waitForDB();
+        
+        function updateUI() {
+            const user = getCurrentUser();
+            if (!user) return;
+            
+            document.getElementById('balanceDisplay').innerHTML = user.balance.toFixed(2) + ' TON';
+            document.getElementById('userName').innerHTML = user.name;
+            document.getElementById('userStats').innerHTML = 'ставок: ' + (user.totalSent || 0).toFixed(2) + ' TON';
+            
+            // Аватар
+            const avatar = document.getElementById('userAvatar');
+            if (user.avatar) {
+                avatar.innerHTML = `<img src="${user.avatar}">`;
+            } else {
+                avatar.innerHTML = '<i class="fas fa-user"></i>';
             }
-
-            async waitForDB() {
-                // Ждем пока БД загрузится
-                const check = setInterval(() => {
-                    if (this.db.ready) {
-                        clearInterval(check);
-                        this.init();
-                    }
-                }, 100);
+            
+            // Статистика
+            const total = bets.reduce((s, b) => s + b.amount, 0);
+            document.getElementById('totalSent').innerHTML = total.toFixed(2) + ' TON';
+            document.getElementById('totalRoyalty').innerHTML = (total * 0.1).toFixed(2) + ' TON';
+            document.getElementById('totalPlayers').innerHTML = players.length;
+            
+            // Ранг
+            const top = getTopPlayers();
+            const rank = top.findIndex(p => p.id === user.id) + 1;
+            document.getElementById('userRank').innerHTML = rank > 0 ? '#' + rank : '#0';
+            document.getElementById('userPrize').innerHTML = Math.floor((user.totalSent || 0) * 1.5) + ' TON';
+        }
+        
+        function updateTopList() {
+            const top = getTopPlayers();
+            const list = document.getElementById('topList');
+            
+            if (top.length === 0) {
+                list.innerHTML = '<div class="top-item"><div class="top-rank gold">1</div><div class="top-avatar"><i class="fas fa-user"></i></div><div class="top-info"><div class="top-name">Пока нет ставок</div></div><div class="top-amount">0.00</div></div>';
+                return;
             }
-
-            init() {
-                // Telegram
-                if (this.tg) {
-                    this.tg.expand();
-                    this.tg.BackButton.show();
-                    this.tg.BackButton.onClick(() => this.closeApp());
-                    
-                    const tgUser = this.tg.initDataUnsafe?.user;
-                    if (tgUser) {
-                        this.loadUser(tgUser);
-                    } else {
-                        this.createTestUser();
-                    }
-                } else {
-                    this.createTestUser();
-                }
-
-                // Запускаем
-                this.updateUI();
-                this.startTimer();
-                this.startTopUpdate();
+            
+            list.innerHTML = top.map((p, i) => {
+                let rankClass = '';
+                if (i === 0) rankClass = 'gold';
+                else if (i === 1) rankClass = 'silver';
+                else if (i === 2) rankClass = 'bronze';
                 
-                window.app = this;
-            }
-
-            loadUser(tgUser) {
-                const telegramId = tgUser.id.toString();
-                let user = this.db.getUserByTelegram(telegramId);
+                const isMe = p.id === currentUser?.id;
+                const avatar = p.avatar ? `<img src="${p.avatar}">` : '<i class="fas fa-user"></i>';
                 
-                if (user) {
-                    this.user = this.db.updateUser(user.id, {
-                        first_name: tgUser.first_name,
-                        last_name: tgUser.last_name || '',
-                        avatar: tgUser.photo_url || ''
-                    });
-                } else {
-                    this.user = this.db.createUser({
-                        telegramId: telegramId,
-                        firstName: tgUser.first_name,
-                        lastName: tgUser.last_name || '',
-                        avatar: tgUser.photo_url || ''
-                    });
-                }
-            }
-
-            createTestUser() {
-                // Проверяем есть ли тестовый пользователь
-                const users = this.db.getAllUsers();
-                if (users.length > 0) {
-                    this.user = users[0];
-                } else {
-                    this.user = this.db.createUser({
-                        telegramId: 'test_' + Date.now(),
-                        firstName: 'Тестовый',
-                        lastName: 'Игрок',
-                        avatar: ''
-                    });
-                }
-            }
-
-            // ===============================================
-            // СТАВКИ
-            // ===============================================
-
-            showBetModal() {
-                document.getElementById('betModal').style.display = 'flex';
-            }
-
-            makeBet() {
-                const amount = parseFloat(document.getElementById('betAmount').value);
-                
-                if (amount < 0.01) {
-                    this.showNotification('❌ Минимум 0.01 TON');
-                    return;
-                }
-                
-                if (amount > this.user.balance) {
-                    this.showNotification('❌ Недостаточно средств');
-                    return;
-                }
-
-                // Добавляем ставку в БД
-                this.db.addBet(this.user.id, amount);
-                
-                // Обновляем пользователя
-                this.user = this.db.getUserById(this.user.id);
-
-                // Обновляем UI
-                this.updateUI();
-                this.updateTopList();
-                
-                this.closeModal('betModal');
-                this.showNotification(`✅ Ставка ${amount.toFixed(2)} TON`);
-            }
-
-            // ===============================================
-            // ТОП-50
-            // ===============================================
-
-            startTopUpdate() {
-                // Первое обновление
-                setTimeout(() => this.updateTopList(), 500);
-                
-                // Обновляем каждые 5 секунд
-                setInterval(() => this.updateTopList(), 5000);
-            }
-
-            updateTopList() {
-                if (!this.db.ready) return;
-                
-                const top = this.db.getTopPlayers();
-                const list = document.getElementById('topList');
-
-                if (top.length === 0) {
-                    list.innerHTML = '<div class="top-item"><div class="top-rank gold">1</div><div class="top-avatar"><i class="fas fa-user"></i></div><div class="top-info"><div class="top-name">Пока нет ставок</div></div><div class="top-amount">0.00</div></div>';
-                    return;
-                }
-
-                list.innerHTML = top.map((p, i) => {
-                    let rankClass = '';
-                    if (i === 0) rankClass = 'gold';
-                    else if (i === 1) rankClass = 'silver';
-                    else if (i === 2) rankClass = 'bronze';
-                    
-                    const isMe = p.id === this.user?.id;
-                    const fullName = p.last_name ? `${p.first_name} ${p.last_name}` : p.first_name;
-                    const avatar = p.avatar ? `<img src="${p.avatar}">` : '<i class="fas fa-user"></i>';
-                    
-                    return `
-                        <div class="top-item" style="${isMe ? 'background: rgba(0,136,204,0.1); border-radius: 10px;' : ''}">
-                            <div class="top-rank ${rankClass}">${i + 1}</div>
-                            <div class="top-avatar">${avatar}</div>
-                            <div class="top-info">
-                                <div class="top-name">${fullName} ${isMe ? '(вы)' : ''}</div>
-                                <div class="top-stats">${p.bets_count || 0} ставок</div>
-                            </div>
-                            <div class="top-amount">
-                                <span class="ton-badge">TON</span>
-                                ${p.total_amount.toFixed(2)}
-                            </div>
+                return `
+                    <div class="top-item" style="${isMe ? 'background: rgba(0,136,204,0.1); border-radius: 10px;' : ''}">
+                        <div class="top-rank ${rankClass}">${i + 1}</div>
+                        <div class="top-avatar">${avatar}</div>
+                        <div class="top-info">
+                            <div class="top-name">${p.name} ${isMe ? '(вы)' : ''}</div>
+                            <div class="top-stats">${p.count || 0} ставок</div>
                         </div>
-                    `;
-                }).join('');
-            }
-
-            // ===============================================
-            // UI
-            // ===============================================
-
-            updateUI() {
-                if (!this.user) return;
-
-                document.getElementById('balanceDisplay').innerHTML = this.user.balance.toFixed(2) + ' TON';
-                document.getElementById('userName').innerHTML = this.user.first_name + (this.user.last_name ? ' ' + this.user.last_name : '');
-                document.getElementById('userStats').innerHTML = 'ставок: ' + (this.user.total_sent || 0).toFixed(2) + ' TON';
-                
-                // Аватар
-                const avatar = document.getElementById('userAvatar');
-                if (this.user.avatar) {
-                    avatar.innerHTML = `<img src="${this.user.avatar}">`;
+                        <div class="top-amount">
+                            <span class="ton-badge">TON</span>
+                            ${p.total.toFixed(2)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Таймер
+        let timerEnd = localStorage.getItem('timerEnd');
+        if (!timerEnd) {
+            timerEnd = Date.now() + 200 * 60 * 60 * 1000;
+            localStorage.setItem('timerEnd', timerEnd);
+        } else {
+            timerEnd = parseInt(timerEnd);
+        }
+        
+        setInterval(() => {
+            const diff = timerEnd - Date.now();
+            
+            if (diff <= 0) {
+                const top = getTopPlayers();
+                if (top.length > 0) {
+                    showNotification(`👑 ${top[0].name} стал королем!`);
                 }
-
-                // Статистика
-                const totalPool = parseFloat(this.db.getGameSetting('total_pool') || '0');
-                const totalRoyalty = parseFloat(this.db.getGameSetting('total_royalty') || '0');
-                const users = this.db.getAllUsers();
-                
-                document.getElementById('totalSent').innerHTML = totalPool.toFixed(2) + ' TON';
-                document.getElementById('totalRoyalty').innerHTML = totalRoyalty.toFixed(2) + ' TON';
-                document.getElementById('totalPlayers').innerHTML = users.length;
-                
-                // Ранг
-                const top = this.db.getTopPlayers();
-                const rank = top.findIndex(p => p.id === this.user.id) + 1;
-                document.getElementById('userRank').innerHTML = rank > 0 ? '#' + rank : '—';
-                document.getElementById('userPrize').innerHTML = Math.floor((this.user.total_sent || 0) * 1.5) + ' TON';
+                timerEnd = Date.now() + 200 * 60 * 60 * 1000;
+                localStorage.setItem('timerEnd', timerEnd);
             }
-
-            startTimer() {
-                setInterval(() => {
-                    const endTime = parseInt(this.db.getGameSetting('king_end_time') || '0');
-                    const diff = (endTime * 1000) - Date.now();
-                    
-                    if (diff <= 0) {
-                        // Находим победителя
-                        const top = this.db.getTopPlayers();
-                        if (top.length > 0) {
-                            this.showNotification(`👑 ${top[0].first_name} стал королем!`);
-                        }
-                        
-                        // Сбрасываем таймер
-                        const newEnd = Math.floor(Date.now() / 1000) + 200 * 60 * 60;
-                        this.db.setGameSetting('king_end_time', newEnd);
-                    }
-
-                    const hours = Math.floor(diff / (60 * 60 * 1000));
-                    const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-                    const seconds = Math.floor((diff % (60 * 1000)) / 1000);
-                    
-                    document.getElementById('timerDisplay').innerHTML = 
-                        `${hours.toString().padStart(3, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                }, 1000);
+            
+            const hours = Math.floor(diff / (60 * 60 * 1000));
+            const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+            const seconds = Math.floor((diff % (60 * 1000)) / 1000);
+            
+            document.getElementById('timerDisplay').innerHTML = 
+                `${hours.toString().padStart(3, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }, 1000);
+        
+        // ===============================================
+        // ФУНКЦИИ КНОПОК
+        // ===============================================
+        
+        function showDeposit() {
+            document.getElementById('depositModal').style.display = 'flex';
+        }
+        
+        function processDeposit() {
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            
+            if (amount < 0.01) {
+                showNotification('❌ Минимум 0.01 TON');
+                return;
             }
-
-            // ===============================================
-            // ПОПОЛНЕНИЕ
-            // ===============================================
-
-            showDeposit() {
-                document.getElementById('depositModal').style.display = 'flex';
+            
+            const link = `https://app.tonkeeper.com/transfer/UQDLH22g4oiwhpdPyljcYS6kTQQLmnFs6gNZfjizzbx9Dkpo?amount=${amount * 1000000000}&text=WinTon`;
+            window.open(link, '_blank');
+            
+            closeModal('depositModal');
+            showNotification('⏳ Ожидаем оплату...');
+            
+            // Для теста (потом убрать!)
+            setTimeout(() => {
+                currentUser.balance += amount;
+                updateUser({ balance: currentUser.balance });
+                showNotification(`✅ Получено ${amount.toFixed(2)} TON (ТЕСТ)`);
+            }, 5000);
+        }
+        
+        function showBetModal() {
+            document.getElementById('betModal').style.display = 'flex';
+        }
+        
+        function makeBet() {
+            const amount = parseFloat(document.getElementById('betAmount').value);
+            
+            if (amount < 0.01) {
+                showNotification('❌ Минимум 0.01 TON');
+                return;
             }
-
-            processDeposit() {
-                const amount = parseFloat(document.getElementById('depositAmount').value);
-                
-                if (amount < 0.01) {
-                    this.showNotification('❌ Минимум 0.01 TON');
-                    return;
-                }
-
-                const nanoAmount = Math.floor(amount * 1000000000);
-                const link = `https://app.tonkeeper.com/transfer/UQDLH22g4oiwhpdPyljcYS6kTQQLmnFs6gNZfjizzbx9Dkpo?amount=${nanoAmount}&text=WinTon`;
-
-                window.open(link, '_blank');
-                this.closeModal('depositModal');
-                this.showNotification('⏳ После оплаты баланс обновится');
-                
-                // ТУТ ДОЛЖНА БЫТЬ ПРОВЕРКА ЧЕРЕЗ TON API
-            }
-
-            showNotification(text) {
-                const n = document.getElementById('notification');
-                n.style.display = 'block';
-                n.innerHTML = text;
-                setTimeout(() => n.style.display = 'none', 3000);
-            }
-
-            closeModal(id) {
-                document.getElementById(id).style.display = 'none';
-            }
-
-            showMenu() {
-                this.showNotification(`👤 ${this.user.first_name}\n💰 ${this.user.balance.toFixed(2)} TON`);
-            }
-
-            showRules() {
-                this.showNotification('👑 Каждые 200ч новый король');
-            }
-
-            closeApp() {
-                if (this.tg) this.tg.close();
+            
+            if (addBet(amount)) {
+                closeModal('betModal');
+                showNotification(`✅ Ставка ${amount.toFixed(2)} TON`);
+            } else {
+                showNotification('❌ Недостаточно средств');
             }
         }
-
+        
+        function showNotification(text) {
+            const n = document.getElementById('notification');
+            n.style.display = 'block';
+            n.innerHTML = text;
+            setTimeout(() => n.style.display = 'none', 3000);
+        }
+        
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+        
+        function showMenu() {
+            const user = getCurrentUser();
+            showNotification(`👤 ${user.name}\n💰 ${user.balance.toFixed(2)} TON`);
+        }
+        
+        function showRules() {
+            showNotification('👑 Каждые 200ч новый король забирает всё');
+        }
+        
+        function closeApp() {
+            if (tg) tg.close();
+        }
+        
         // Запуск
-        document.addEventListener('DOMContentLoaded', () => {
-            new WinTonApp();
-        });
+        loadData();
+        getCurrentUser();
+        updateUI();
+        updateTopList();
     </script>
 </body>
 </html>
