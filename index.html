@@ -683,10 +683,10 @@
         }
 
         // =============================================
-        // НАСТРОЙКИ
+        // НАСТРОЙКИ - ИСПРАВЛЕНО!
         // =============================================
         
-        const API_URL = 'https://casino-mini-app.vercel.app'; // ТВОЙ СЕРВЕР НА VERCEL
+        const API_URL = ''; // API на том же домене через /api
         let currentUser = null;
 
         // =============================================
@@ -712,6 +712,8 @@
                 if (response.ok) {
                     currentUser = await response.json();
                     updateUI();
+                } else {
+                    showNotification('❌ Ошибка сервера');
                 }
             } catch (error) {
                 console.error('Ошибка загрузки пользователя:', error);
@@ -764,7 +766,8 @@
                     await loadTop();
                     await loadStats();
                 } else {
-                    showNotification('❌ Ошибка при ставке');
+                    const error = await response.json();
+                    showNotification('❌ ' + (error.error || 'Ошибка при ставке'));
                 }
             } catch (error) {
                 showNotification('❌ Ошибка сервера');
