@@ -1,0 +1,10 @@
+{
+  "name": "casino-mini-app",
+  "version": "1.0.0",
+  "scripts": {
+    "vercel-build": "echo Hello"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0"
+  }
+}
