@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WinTon — Царь горы</title>
-    <!-- Подключаем шрифты и иконки -->
+    <!-- Шрифты и иконки -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Сброс стилей */
         * {
             margin: 0;
             padding: 0;
@@ -38,7 +37,6 @@
             align-items: flex-start;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
         .app-container {
@@ -48,7 +46,6 @@
             position: relative;
             min-height: 100vh;
             padding-bottom: 30px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
         /* ШАПКА */
@@ -61,7 +58,6 @@
             overflow: hidden;
         }
 
-        /* Паттерн TON */
         .header::after {
             content: "◈◈◈◈◈◈◈◈◈◈";
             position: absolute;
@@ -160,6 +156,7 @@
             margin-bottom: 25px;
             position: relative;
             z-index: 2;
+            gap: 10px;
         }
 
         .balance-card {
@@ -206,28 +203,19 @@
             line-height: 1.2;
         }
 
-        .gift-chip {
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
+        .connect-wallet-btn {
+            background: var(--ton-blue);
+            border: none;
             border-radius: 30px;
-            padding: 10px 18px;
+            padding: 12px 18px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-left: 10px;
             cursor: pointer;
-        }
-
-        .gift-chip i {
-            color: var(--ton-blue);
-            font-size: 18px;
-        }
-
-        .gift-chip span {
-            font-weight: 700;
-            font-size: 18px;
-            color: white;
+            white-space: nowrap;
         }
 
         /* Таймер */
@@ -261,12 +249,6 @@
             background-clip: text;
         }
 
-        .timer-sub {
-            font-size: 12px;
-            color: rgba(255,255,255,0.5);
-            font-weight: 500;
-        }
-
         /* Баннер */
         .banner {
             background: #022b40;
@@ -278,6 +260,7 @@
             z-index: 3;
             border: 1px solid rgba(0,136,204,0.3);
             border-top: none;
+            cursor: pointer;
         }
 
         .banner-title {
@@ -294,7 +277,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            cursor: pointer;
         }
 
         /* Основной контент */
@@ -316,11 +298,6 @@
             padding: 18px 8px;
             text-align: center;
             border: 1px solid var(--border-color);
-            transition: transform 0.2s;
-        }
-
-        .stat-item:active {
-            transform: scale(0.98);
         }
 
         .stat-icon {
@@ -392,7 +369,6 @@
             align-items: center;
             gap: 15px;
             margin-bottom: 30px;
-            transition: 0.2s;
         }
 
         .user-rank {
@@ -524,45 +500,110 @@
             font-weight: 800;
         }
 
-        /* Кнопка */
+        /* Кнопки действий */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin: 20px 16px 10px 16px;
+        }
+
         .action-button {
+            flex: 1;
             background: linear-gradient(135deg, var(--ton-blue), var(--ton-dark));
             border-radius: 40px;
-            padding: 22px 24px;
-            margin: 20px 16px 10px 16px;
+            padding: 18px 12px;
             text-align: center;
             font-weight: 700;
-            font-size: 20px;
+            font-size: 16px;
             color: white;
             box-shadow: 0 10px 25px rgba(0,136,204,0.3);
-            transition: all 0.2s;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 8px;
             border: none;
-            width: calc(100% - 32px);
+        }
+
+        .action-button.secondary {
+            background: var(--card-bg);
+            border: 1px solid var(--ton-blue);
+            box-shadow: none;
         }
 
         .action-button:active {
             transform: scale(0.97);
-            box-shadow: 0 5px 15px rgba(0,136,204,0.5);
         }
 
-        .footer-note {
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 13px;
-            margin: 15px 0 25px;
+        /* Модальное окно */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+            padding: 20px;
         }
 
-        .footer-note i {
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 30px;
+            padding: 30px;
+            max-width: 380px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 20px;
             color: var(--ton-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-text {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 16px;
+            background: #1a1a1a;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            color: white;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .modal-button {
+            background: var(--ton-blue);
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 18px;
+            border-radius: 30px;
+            width: 100%;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .modal-button.secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
         }
 
         /* Уведомления */
@@ -579,61 +620,11 @@
             font-weight: 600;
             z-index: 1000;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-            transition: 0.3s;
             max-width: 320px;
             width: 90%;
             text-align: center;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* Модальное окно */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            backdrop-filter: blur(10px);
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            border-radius: 30px;
-            padding: 30px;
-            max-width: 340px;
-            width: 90%;
-            border: 1px solid var(--border-color);
-        }
-
-        .modal-title {
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 20px;
-            color: var(--ton-blue);
-        }
-
-        .modal-text {
-            color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-
-        .modal-button {
-            background: var(--ton-blue);
-            border: none;
-            color: white;
-            font-weight: 700;
-            padding: 16px;
-            border-radius: 30px;
-            width: 100%;
-            font-size: 16px;
-            cursor: pointer;
         }
     </style>
 </head>
@@ -642,7 +633,7 @@
         <!-- ШАПКА -->
         <div class="header">
             <div class="header-top">
-                <div class="close-btn" onclick="closeApp()">
+                <div class="close-btn" onclick="app.closeApp()">
                     <i class="fas fa-chevron-left"></i> Закрыть
                 </div>
                 <div class="title-section">
@@ -651,7 +642,7 @@
                     </div>
                     <div class="sub-title">царь горы</div>
                 </div>
-                <div class="menu-btn" onclick="showMenu()">
+                <div class="menu-btn" onclick="app.showMenu()">
                     <div class="menu-dot"></div>
                     <div class="menu-dot"></div>
                     <div class="menu-dot"></div>
@@ -669,22 +660,21 @@
                         <div class="balance-amount" id="balanceDisplay">0 TON</div>
                     </div>
                 </div>
-                <div class="gift-chip" onclick="showDeposit()">
+                <button class="connect-wallet-btn" onclick="app.showDepositModal()">
                     <i class="fas fa-plus-circle"></i>
-                    <span>10 TON</span>
-                </div>
+                    Пополнить
+                </button>
             </div>
 
             <!-- Таймер -->
             <div class="timer-container">
                 <div class="timer-label">НОВЫЙ КОРОЛЬ ЧЕРЕЗ</div>
                 <div class="main-timer" id="timerDisplay">200:00:00</div>
-                <div class="timer-sub">ставь и забирай всё</div>
             </div>
         </div>
 
         <!-- БАННЕР -->
-        <div class="banner" onclick="showRules()">
+        <div class="banner" onclick="app.showRules()">
             <div class="banner-title">👑 Царь горы заберет больше всех</div>
             <div class="banner-link">
                 Узнать правила <i class="fas fa-arrow-right"></i>
@@ -748,21 +738,52 @@
                 <div class="prize-label">ВЫИГРЫШ</div>
             </div>
 
-            <div class="top-list" id="topList">
-                <!-- Здесь будут топ-3 через JavaScript -->
-            </div>
+            <div class="top-list" id="topList"></div>
         </div>
 
-        <!-- КНОПКА -->
-        <button class="action-button" onclick="sendGift()">
-            <i class="fas fa-paper-plane"></i>
-            Отправить подарок (10 TON)
-        </button>
-        
-        <div class="footer-note">
-            <i class="fab fa-telegram"></i>
-            реальные люди • честная игра • TON
-            <i class="fab fa-telegram"></i>
+        <!-- КНОПКИ ДЕЙСТВИЙ -->
+        <div class="action-buttons">
+            <button class="action-button" onclick="app.showDepositModal()">
+                <i class="fas fa-plus-circle"></i>
+                Пополнить
+            </button>
+            <button class="action-button secondary" onclick="app.sendGift()">
+                <i class="fas fa-paper-plane"></i>
+                Подарок (10 TON)
+            </button>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ПОПОЛНЕНИЯ -->
+    <div id="depositModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-title">
+                <i class="fas fa-coins"></i>
+                Пополнение TON
+            </div>
+            
+            <div class="modal-text">
+                Введите сумму и нажмите "Оплатить".<br>
+                Вы будете перенаправлены в TON Keeper.
+            </div>
+
+            <input type="number" id="depositAmount" class="modal-input" placeholder="Сумма в TON" min="1" value="10" step="1">
+            
+            <button class="modal-button" onclick="app.processDeposit()">
+                <i class="fas fa-qrcode"></i>
+                Оплатить через TON Keeper
+            </button>
+
+            <button class="modal-button secondary" onclick="app.closeModal('depositModal')">
+                Закрыть
+            </button>
+
+            <div style="margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 12px;">
+                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Получатель:</div>
+                <div style="font-size: 12px; word-break: break-all; color: #0088cc;">
+                    UQDLH22g4oiwhpdPyljcYS6kTQQLmnFs6gNZfjizzbx9Dkpo
+                </div>
+            </div>
         </div>
     </div>
 
@@ -771,72 +792,165 @@
 
     <script>
         // ===============================================
-        // БАЗА ДАННЫХ (localStorage с синхронизацией)
+        // ТВОЙ КОШЕЛЕК ДЛЯ ПОПОЛНЕНИЙ
         // ===============================================
         
-        class Database {
+        const YOUR_WALLET = 'UQDLH22g4oiwhpdPyljcYS6kTQQLmnFs6gNZfjizzbx9Dkpo';
+
+        // ===============================================
+        // ОСНОВНОЙ КЛАСС
+        // ===============================================
+
+        class WinTonApp {
             constructor() {
-                this.KEY = 'winton_game_data';
-                this.USERS_KEY = 'winton_users';
-                this.TRANSACTIONS_KEY = 'winton_transactions';
+                this.user = null;
+                this.gameData = null;
+                this.tg = window.Telegram?.WebApp;
+                this.pendingTransactions = [];
+                
                 this.init();
             }
 
             init() {
-                // Создаем базу если её нет
-                if (!localStorage.getItem(this.KEY)) {
-                    localStorage.setItem(this.KEY, JSON.stringify({
-                        totalSent: 0,
-                        totalRoyalty: 0,
-                        totalPlayers: 0,
-                        lastUpdate: Date.now(),
-                        currentKing: null,
-                        kingEndTime: Date.now() + 200 * 60 * 60 * 1000
-                    }));
+                if (this.tg) {
+                    this.tg.expand();
+                    this.tg.BackButton.show();
+                    this.tg.BackButton.onClick(() => this.closeApp());
                 }
 
-                if (!localStorage.getItem(this.USERS_KEY)) {
-                    localStorage.setItem(this.USERS_KEY, JSON.stringify([]));
+                this.loadUserData();
+                this.loadGameData();
+                this.updateUI();
+                this.startTimer();
+            }
+
+            // ===============================================
+            // ПОПОЛНЕНИЕ ЧЕРЕЗ ТВОЙ КОШЕЛЕК
+            // ===============================================
+
+            showDepositModal() {
+                document.getElementById('depositModal').style.display = 'flex';
+            }
+
+            processDeposit() {
+                const amount = document.getElementById('depositAmount').value;
+                
+                if (!amount || amount < 1) {
+                    this.showNotification('❌ Введите сумму от 1 TON');
+                    return;
                 }
 
-                if (!localStorage.getItem(this.TRANSACTIONS_KEY)) {
-                    localStorage.setItem(this.TRANSACTIONS_KEY, JSON.stringify([]));
+                // Конвертируем в наноTON (1 TON = 1,000,000,000 наноTON)
+                const nanoAmount = amount * 1000000000;
+
+                // Формируем ссылку на TON Keeper с ТВОИМ кошельком
+                const paymentLink = `https://app.tonkeeper.com/transfer/${YOUR_WALLET}?amount=${nanoAmount}&text=Пополнение%20WinTon%20от%20${this.user?.name || 'игрока'}`;
+
+                // Сохраняем транзакцию для проверки
+                const txId = 'tx_' + Date.now();
+                this.pendingTransactions.push({
+                    id: txId,
+                    amount: parseFloat(amount),
+                    timestamp: Date.now()
+                });
+                localStorage.setItem('pending_txs', JSON.stringify(this.pendingTransactions));
+
+                // Показываем уведомление
+                this.showNotification(`⏳ Ожидание оплаты ${amount} TON...`);
+
+                // Открываем TON Keeper
+                window.open(paymentLink, '_blank');
+
+                // Закрываем модальное окно
+                setTimeout(() => {
+                    this.closeModal('depositModal');
+                    
+                    // Показываем инструкцию
+                    this.showNotification('✅ После оплаты баланс обновится в течение минуты');
+                }, 1000);
+
+                // Запускаем проверку через 30 секунд (имитация)
+                setTimeout(() => this.checkTransaction(txId, amount), 30000);
+            }
+
+            checkTransaction(txId, expectedAmount) {
+                // В реальном проекте здесь должен быть запрос к API
+                // Для демо просто начисляем баланс через 30 секунд
+                
+                const tx = this.pendingTransactions.find(t => t.id === txId);
+                if (!tx) return;
+
+                // Начисляем баланс
+                this.user.balance += parseFloat(expectedAmount);
+                
+                // Сохраняем
+                this.saveUserData();
+                
+                // Обновляем UI
+                this.updateUI();
+                
+                // Удаляем из ожидающих
+                this.pendingTransactions = this.pendingTransactions.filter(t => t.id !== txId);
+                localStorage.setItem('pending_txs', JSON.stringify(this.pendingTransactions));
+                
+                this.showNotification(`✅ Баланс пополнен на ${expectedAmount} TON!`);
+                
+                if (this.tg) {
+                    this.tg.HapticFeedback.notificationOccurred('success');
                 }
             }
 
-            // Получить данные игры
-            getGameData() {
-                return JSON.parse(localStorage.getItem(this.KEY));
+            // ===============================================
+            // ОТПРАВКА ПОДАРКА
+            // ===============================================
+
+            sendGift() {
+                if (!this.user || this.user.balance < 10) {
+                    this.showNotification('❌ Недостаточно TON (нужно 10 TON)');
+                    return;
+                }
+
+                const amount = 10;
+                const royalty = 1; // 10%
+
+                // Списываем
+                this.user.balance -= amount;
+                this.user.totalSent += (amount - royalty);
+                
+                // Обновляем статистику
+                this.gameData.totalSent += (amount - royalty);
+                this.gameData.totalRoyalty += royalty;
+
+                // Сохраняем
+                this.saveUserData();
+                this.saveGameData();
+
+                // Обновляем UI
+                this.updateUI();
+
+                // Показываем уведомление
+                this.showNotification(`✅ Подарок отправлен! +${amount - royalty} TON в приз`);
+
+                if (this.tg) {
+                    this.tg.HapticFeedback.notificationOccurred('success');
+                }
             }
 
-            // Сохранить данные игры
-            setGameData(data) {
-                localStorage.setItem(this.KEY, JSON.stringify(data));
-            }
+            // ===============================================
+            // РАБОТА С ДАННЫМИ
+            // ===============================================
 
-            // Получить всех пользователей
-            getUsers() {
-                return JSON.parse(localStorage.getItem(this.USERS_KEY));
-            }
-
-            // Сохранить пользователей
-            setUsers(users) {
-                localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
-            }
-
-            // Получить текущего пользователя
-            getCurrentUser() {
+            loadUserData() {
                 const userId = this.getCurrentUserId();
                 const users = this.getUsers();
-                return users.find(u => u.id === userId) || this.createUser(userId);
+                
+                this.user = users.find(u => u.id === userId) || this.createUser(userId);
             }
 
-            // Получить ID текущего пользователя (из Telegram)
             getCurrentUserId() {
-                if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
-                    return window.Telegram.WebApp.initDataUnsafe.user.id.toString();
+                if (this.tg?.initDataUnsafe?.user?.id) {
+                    return this.tg.initDataUnsafe.user.id.toString();
                 }
-                // Для теста вне Telegram
                 let testId = localStorage.getItem('test_user_id');
                 if (!testId) {
                     testId = 'user_' + Math.random().toString(36).substr(2, 9);
@@ -845,203 +959,90 @@
                 return testId;
             }
 
-            // Создать нового пользователя
+            getUsers() {
+                return JSON.parse(localStorage.getItem('winton_users') || '[]');
+            }
+
+            saveUsers(users) {
+                localStorage.setItem('winton_users', JSON.stringify(users));
+            }
+
             createUser(userId) {
                 const users = this.getUsers();
-                const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+                const telegramUser = this.tg?.initDataUnsafe?.user;
                 
                 const newUser = {
                     id: userId,
                     name: telegramUser?.first_name || 'Игрок ' + Math.floor(Math.random() * 1000),
-                    username: telegramUser?.username || '',
-                    avatar: telegramUser?.photo_url || '',
-                    balance: 100, // Стартовый баланс
+                    balance: 100,
                     totalSent: 0,
                     totalWon: 0,
                     rank: users.length + 1,
-                    lastActive: Date.now(),
-                    registeredAt: Date.now(),
-                    bets: []
+                    lastActive: Date.now()
                 };
 
                 users.push(newUser);
-                this.setUsers(users);
+                this.saveUsers(users);
 
-                // Обновляем общее количество игроков
                 const gameData = this.getGameData();
                 gameData.totalPlayers = users.length;
-                this.setGameData(gameData);
+                this.saveGameData(gameData);
 
                 return newUser;
             }
 
-            // Обновить пользователя
-            updateUser(userId, updates) {
+            saveUserData() {
                 const users = this.getUsers();
-                const index = users.findIndex(u => u.id === userId);
+                const index = users.findIndex(u => u.id === this.user.id);
                 if (index !== -1) {
-                    users[index] = { ...users[index], ...updates, lastActive: Date.now() };
-                    this.setUsers(users);
-                    return users[index];
-                }
-                return null;
-            }
-
-            // Добавить транзакцию
-            addTransaction(transaction) {
-                const transactions = JSON.parse(localStorage.getItem(this.TRANSACTIONS_KEY));
-                transactions.push({
-                    id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                    ...transaction,
-                    timestamp: Date.now()
-                });
-                localStorage.setItem(this.TRANSACTIONS_KEY, JSON.stringify(transactions));
-            }
-
-            // Получить топ игроков
-            getTopPlayers(limit = 3) {
-                const users = this.getUsers();
-                return users
-                    .filter(u => u.totalSent > 0)
-                    .sort((a, b) => b.totalSent - a.totalSent)
-                    .slice(0, limit);
-            }
-
-            // Обновить статистику игры
-            updateGameStats(amount, userId) {
-                const gameData = this.getGameData();
-                gameData.totalSent += amount;
-                gameData.totalRoyalty += Math.floor(amount * 0.1);
-                gameData.lastUpdate = Date.now();
-                this.setGameData(gameData);
-
-                // Обновляем пользователя
-                const user = this.getCurrentUser();
-                user.totalSent += amount;
-                user.balance -= amount;
-                this.updateUser(user.id, user);
-
-                // Добавляем транзакцию
-                this.addTransaction({
-                    userId: userId,
-                    amount: amount,
-                    type: 'send',
-                    balance: user.balance
-                });
-
-                return gameData;
-            }
-
-            // Проверить и обновить короля
-            checkAndUpdateKing() {
-                const gameData = this.getGameData();
-                const now = Date.now();
-
-                if (now >= gameData.kingEndTime) {
-                    // Находим победителя
-                    const topPlayers = this.getTopPlayers(1);
-                    if (topPlayers.length > 0) {
-                        const winner = topPlayers[0];
-                        
-                        // Начисляем приз
-                        const prize = gameData.totalSent;
-                        winner.totalWon += prize;
-                        winner.balance += prize;
-                        this.updateUser(winner.id, winner);
-
-                        // Добавляем транзакцию
-                        this.addTransaction({
-                            userId: winner.id,
-                            amount: prize,
-                            type: 'win',
-                            balance: winner.balance
-                        });
-
-                        // Показываем уведомление
-                        this.showWinnerNotification(winner, prize);
-                    }
-
-                    // Сбрасываем игру
-                    gameData.totalSent = 0;
-                    gameData.totalRoyalty = 0;
-                    gameData.kingEndTime = now + 200 * 60 * 60 * 1000;
-                    gameData.currentKing = null;
-                    this.setGameData(gameData);
-
-                    return true;
-                }
-                return false;
-            }
-
-            // Показать уведомление о победителе
-            showWinnerNotification(winner, prize) {
-                const message = `👑 НОВЫЙ КОРОЛЬ!\n\n${winner.name} забрал ${prize} TON`;
-                if (window.Telegram?.WebApp) {
-                    window.Telegram.WebApp.showAlert(message);
-                } else {
-                    alert(message);
+                    users[index] = this.user;
+                    this.saveUsers(users);
                 }
             }
-        }
 
-        // ===============================================
-        // ОСНОВНОЙ КЛАСС ПРИЛОЖЕНИЯ
-        // ===============================================
-
-        class WinTonApp {
-            constructor() {
-                this.db = new Database();
-                this.user = null;
-                this.gameData = null;
-                this.tg = window.Telegram?.WebApp;
-                
-                this.init();
+            getGameData() {
+                return JSON.parse(localStorage.getItem('winton_game_data') || JSON.stringify({
+                    totalSent: 0,
+                    totalRoyalty: 0,
+                    totalPlayers: 0,
+                    lastUpdate: Date.now(),
+                    kingEndTime: Date.now() + 200 * 60 * 60 * 1000
+                }));
             }
 
-            init() {
-                // Инициализация Telegram
-                if (this.tg) {
-                    this.tg.expand();
-                    this.tg.BackButton.show();
-                    this.tg.BackButton.onClick(() => this.closeApp());
-                    this.tg.enableClosingConfirmation();
-                }
-
-                // Загружаем данные
-                this.user = this.db.getCurrentUser();
-                this.gameData = this.db.getGameData();
-
-                // Обновляем UI
-                this.updateUI();
-
-                // Запускаем таймер
-                this.startTimer();
-
-                // Проверяем короля каждую минуту
-                setInterval(() => this.checkKing(), 60000);
+            saveGameData(data) {
+                localStorage.setItem('winton_game_data', JSON.stringify(data));
             }
+
+            loadGameData() {
+                this.gameData = this.getGameData();
+            }
+
+            // ===============================================
+            // UI
+            // ===============================================
 
             updateUI() {
-                // Обновляем баланс
                 document.getElementById('balanceDisplay').textContent = this.user.balance + ' TON';
-
-                // Обновляем статистику
-                document.getElementById('totalSent').textContent = this.gameData.totalSent;
-                document.getElementById('totalRoyalty').textContent = this.gameData.totalRoyalty;
+                document.getElementById('totalSent').textContent = this.gameData.totalSent + ' TON';
+                document.getElementById('totalRoyalty').textContent = this.gameData.totalRoyalty + ' TON';
                 document.getElementById('totalPlayers').textContent = this.gameData.totalPlayers;
-
-                // Обновляем позицию пользователя
+                
                 document.getElementById('userRank').textContent = '#' + this.user.rank;
                 document.getElementById('userName').textContent = this.user.name;
                 document.getElementById('userStats').textContent = `ставок: ${this.user.totalSent}`;
-                document.getElementById('userPrize').textContent = this.calculatePrize() + ' TON';
+                document.getElementById('userPrize').textContent = Math.floor(this.user.totalSent * 1.5) + ' TON';
 
-                // Обновляем топ-3
                 this.updateTopList();
             }
 
             updateTopList() {
-                const topPlayers = this.db.getTopPlayers(3);
+                const users = this.getUsers();
+                const topPlayers = users
+                    .filter(u => u.totalSent > 0)
+                    .sort((a, b) => b.totalSent - a.totalSent)
+                    .slice(0, 3);
+
                 const topList = document.getElementById('topList');
                 
                 topList.innerHTML = topPlayers.map((player, index) => {
@@ -1050,7 +1051,7 @@
                         <div class="top-item">
                             <div class="top-rank ${rankClass}">${index + 1}</div>
                             <div class="top-avatar">
-                                <i class="fas ${this.getAvatarIcon(index)}"></i>
+                                <i class="fas ${index === 0 ? 'fa-crown' : (index === 1 ? 'fa-star' : 'fa-rocket')}"></i>
                             </div>
                             <div class="top-info">
                                 <div class="top-name">${player.name}</div>
@@ -1065,28 +1066,14 @@
                 }).join('');
             }
 
-            getAvatarIcon(index) {
-                const icons = ['fa-crown', 'fa-star', 'fa-rocket'];
-                return icons[index] || 'fa-user';
-            }
-
             formatDate(timestamp) {
                 const date = new Date(timestamp);
                 const today = new Date();
                 const diff = today - date;
                 
-                if (diff < 86400000) {
-                    return 'сегодня';
-                } else if (diff < 172800000) {
-                    return 'вчера';
-                } else {
-                    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-                }
-            }
-
-            calculatePrize() {
-                // Простой расчет приза (можно усложнить)
-                return Math.floor(this.user.totalSent * 1.5);
+                if (diff < 86400000) return 'сегодня';
+                if (diff < 172800000) return 'вчера';
+                return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
             }
 
             startTimer() {
@@ -1095,8 +1082,8 @@
                     const diff = this.gameData.kingEndTime - now;
 
                     if (diff <= 0) {
-                        this.db.checkAndUpdateKing();
-                        this.gameData = this.db.getGameData();
+                        this.gameData.kingEndTime = Date.now() + 200 * 60 * 60 * 1000;
+                        this.saveGameData(this.gameData);
                     }
 
                     const hours = Math.floor(diff / (60 * 60 * 1000));
@@ -1111,35 +1098,8 @@
                 setInterval(updateTimer, 1000);
             }
 
-            checkKing() {
-                if (this.db.checkAndUpdateKing()) {
-                    this.gameData = this.db.getGameData();
-                    this.updateUI();
-                }
-            }
-
-            sendGift() {
-                const amount = 10;
-
-                if (this.user.balance < amount) {
-                    this.showNotification('❌ Недостаточно TON! Пополните баланс');
-                    return;
-                }
-
-                // Обновляем данные
-                this.gameData = this.db.updateGameStats(amount, this.user.id);
-                this.user = this.db.getCurrentUser();
-
-                // Обновляем UI
-                this.updateUI();
-
-                // Показываем уведомление
-                this.showNotification('✅ Подарок отправлен! +2 TON к призу');
-
-                // Вибрация
-                if (this.tg) {
-                    this.tg.HapticFeedback.notificationOccurred('success');
-                }
+            closeModal(modalId) {
+                document.getElementById(modalId).style.display = 'none';
             }
 
             showNotification(message) {
@@ -1152,49 +1112,33 @@
                 }, 3000);
             }
 
-            showDeposit() {
-                const message = '💰 Пополнение TON\n\n' +
-                               'Адрес для пополнения:\n' +
-                               'EQD...' + Math.random().toString(36).substr(2, 8).toUpperCase() + '\n\n' +
-                               'Минимальная сумма: 10 TON\n' +
-                               'Баланс обновится автоматически';
-                
-                if (this.tg) {
-                    this.tg.showAlert(message);
-                } else {
-                    alert(message);
-                }
-            }
-
-            showRules() {
-                const rules = '👑 ПРАВИЛА ИГРЫ\n\n' +
-                             '• Каждые 200 часов определяется король\n' +
-                             '• Король = игрок с наибольшей суммой отправленных подарков\n' +
-                             '• Король забирает ВЕСЬ банк\n' +
-                             '• Топ-3 получают бонусы\n' +
-                             '• 10% от каждой отправки идут в роялти\n\n' +
-                             'Честная игра на TON!';
-
-                if (this.tg) {
-                    this.tg.showAlert(rules);
-                } else {
-                    alert(rules);
-                }
-            }
-
             showMenu() {
                 const menu = '📱 МЕНЮ\n\n' +
                             '👤 Профиль\n' +
-                            '💰 Пополнить\n' +
-                            '🎁 Мои подарки\n' +
+                            '💰 История\n' +
+                            '🎁 Подарки\n' +
                             '👥 Рефералы\n' +
-                            '📊 Статистика\n' +
                             '⚙️ Настройки';
 
                 if (this.tg) {
                     this.tg.showAlert(menu);
                 } else {
                     alert(menu);
+                }
+            }
+
+            showRules() {
+                const rules = '👑 ПРАВИЛА\n\n' +
+                             '• Каждые 200 часов новый король\n' +
+                             '• Король = кто больше отправил\n' +
+                             '• Король забирает ВСЁ\n' +
+                             '• Топ-3 получают бонусы\n' +
+                             '• 10% идут в роялти';
+
+                if (this.tg) {
+                    this.tg.showAlert(rules);
+                } else {
+                    alert(rules);
                 }
             }
 
@@ -1206,17 +1150,10 @@
         }
 
         // ===============================================
-        // ЗАПУСК ПРИЛОЖЕНИЯ
+        // ЗАПУСК
         // ===============================================
 
         const app = new WinTonApp();
-
-        // Глобальные функции для onclick
-        function sendGift() { app.sendGift(); }
-        function showDeposit() { app.showDeposit(); }
-        function showRules() { app.showRules(); }
-        function showMenu() { app.showMenu(); }
-        function closeApp() { app.closeApp(); }
     </script>
 </body>
 </html>
